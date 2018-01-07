@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <TextView
+        android:id="@+id/level_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/xhpx_96"
+        android:gravity="center"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_42"
+        android:textStyle="bold" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/refresh_btn"
+        android:layout_width="@dimen/xhpx_72"
+        android:layout_height="@dimen/xhpx_79"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="@dimen/xhpx_16"
+        android:background="@mipmap/ic_refresh"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="bottom|end"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_38"
+        android:textStyle="bold|italic" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/undo_btn"
+        android:layout_width="@dimen/xhpx_72"
+        android:layout_height="@dimen/xhpx_79"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="@dimen/xhpx_16"
+        android:background="@mipmap/ic_undo"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="bottom|end"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_38"
+        android:textStyle="bold|italic" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/guide_btn"
+        android:layout_width="@dimen/xhpx_72"
+        android:layout_height="@dimen/xhpx_79"
+        android:layout_margin="@dimen/xhpx_16"
+        android:background="@mipmap/ic_navigation"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="bottom|end"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_38"
+        android:textStyle="bold|italic" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/drag_btn"
+        android:layout_width="@dimen/xhpx_72"
+        android:layout_height="@dimen/xhpx_79"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="@dimen/xhpx_16"
+        android:background="@mipmap/ic_drag"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="bottom|end"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_38"
+        android:textStyle="bold|italic" />
+
+    <com.wuyr.catchpiggy.customize.views.ClassicMode
+        android:id="@+id/item_group"
+        android:layout_width="@dimen/xhpx_608"
+        android:layout_height="@dimen/xhpx_608"
+        android:layout_centerInParent="true"
+        android:clickable="true"
+        android:focusable="true"
+        app:item_horizontal_count="9"
+        app:item_size="@dimen/xhpx_64"
+        app:item_spacing="0dp"
+        app:item_vertical_count="9" />
+</RelativeLayout>

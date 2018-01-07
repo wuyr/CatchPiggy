@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">捉小猪</string>
+    <string name="fix_pigsty_mode">亡猪补牢</string>
+    <string name="classic_mode">经典模式</string>
+    <string name="start_catch">不要让小猪们跑啦！建猪栏围住它们！</string>
+    <string name="car_is_coming">捉到小猪咯！车来啦！</string>
+    <string name="piggies_has_run">哎呀！小猪全跑了！</string>
+    <string name="drag_pig">把小猪拖到车上</string>
+    <string name="exit_dialog_message">确定要退出吗？</string>
+    <string name="yes">确定</string>
+    <string name="no">取消</string>
+    <string name="level_format" formatted="false">第%d关</string>
+    <string name="continue_game">继续游戏</string>
+    <string name="back_to_menu">返回主菜单</string>
+    <string name="no_permission">请不要拒绝权限</string>
+    <string name="share_achievements">分享战绩到:</string>
+    <string name="again">重来</string>
+    <string name="next">下一关</string>
+    <string name="request_help">向小伙伴们求助:</string>
+    <string name="menu">菜单</string>
+    <string name="classic_mode_won_message_format" formatted="false">恭喜过关！\n共耗时: %d秒\n消耗木头: %d个</string>
+    <string name="classic_mode_lose_message_format" formatted="false">哎呀！差一点就捉住了！\n再接再厉!</string>
+    <string name="pigsty_mode_mission_message_format" formatted="false">第%d关\n\n需要捉到小猪: %d个</string>
+    <string name="pigsty_mode_won_message_format" formatted="false">恭喜过关！\n共耗时: %d秒\n捉到的小猪: %d个\n消耗木头: %d个</string>
+    <string name="pigsty_mode_lose_message_format" formatted="false">哎呀！离完成任务还差一点点哦！\n再接再厉！\n已捉到的小猪: %d个\n需要捉到的小猪: %d个</string>
+    <string name="start">开始</string>
+    <string name="heart_is_empty">没心啦！休息一下再来吧</string>
+    <string name="request_help_format">哎呀！这关我过不了，太难了，能帮我过一下吗？</string>
+    <string name="classic_mode_share_won_format" formatted="false">嘿！我第%d关只用了%d个木头就把小猪给圈住了，求超越！</string>
+    <string name="pigsty_mode_share_won_format" formatted="false">嘿！我第%d关只用了%d个木头就把%d只小猪给捉住了，求超越！</string>
+    <string name="next_page">下一页</string>
+    <string name="previous_page">上一页</string>
+    <string name="close">关闭</string>
+</resources>

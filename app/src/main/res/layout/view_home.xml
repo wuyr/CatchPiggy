@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/logo"
+        android:layout_width="@dimen/xhpx_540"
+        android:layout_height="@dimen/xhpx_297"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/xhpx_128"
+        android:background="@mipmap/ic_logo"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/fix_pigsty_mode_btn"
+        android:layout_width="@dimen/xhpx_420"
+        android:layout_height="@dimen/xhpx_100"
+        android:layout_above="@+id/classic_mode_btn"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/xhpx_32"
+        android:background="@mipmap/ic_board"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/fix_pigsty_mode"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_36"
+        android:textStyle="bold" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/classic_mode_btn"
+        android:layout_width="@dimen/xhpx_350"
+        android:layout_height="@dimen/xhpx_100"
+        android:layout_above="@+id/exit_btn"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/xhpx_32"
+        android:background="@mipmap/ic_board"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/classic_mode"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_36"
+        android:textStyle="bold" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/exit_btn"
+        android:layout_width="@dimen/xhpx_72"
+        android:layout_height="@dimen/xhpx_79"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="@dimen/xhpx_16"
+        android:background="@mipmap/ic_exit"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/sound_btn"
+        android:layout_width="@dimen/xhpx_72"
+        android:layout_height="@dimen/xhpx_79"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="@dimen/xhpx_16"
+        android:background="@mipmap/ic_sound"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <com.wuyr.catchpiggy.customize.views.RandomPiggies
+        android:id="@+id/random_piggies"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</RelativeLayout>

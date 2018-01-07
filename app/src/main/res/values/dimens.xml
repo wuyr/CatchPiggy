@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="item_size">32dp</dimen>
+    <dimen name="prop_view_size">54dp</dimen>
+    <dimen name="item_spacing">2dp</dimen>
+</resources>

@@ -1,0 +1,74 @@
+apply plugin: 'com.android.application'
+// 添加插件
+apply plugin: "com.mob.sdk"
+
+// 在MobSDK的扩展中注册ShareSDK的相关信息
+MobSDK {
+    appKey "23557c69a0de4"
+    appSecret "1b92a94a1fa59ccf0c9a58865c928d7c"
+
+    ShareSDK {
+        devInfo {
+            Wechat {
+                appId "wxa3af0d5548bcb07a"
+                appSecret "261bf364c76853d96086d524449254a6"
+                bypassApproval false
+                shareByAppClient true
+                enable true
+            }
+            WechatMoments {
+                appId "wxa3af0d5548bcb07a"
+                appSecret "261bf364c76853d96086d524449254a6"
+                bypassApproval false
+                shareByAppClient true
+                enable true
+            }
+            QQ {
+                appId "1106640558"
+                appKey "GkYcFq1RgewnwQKi"
+                bypassApproval false
+                shareByAppClient true
+                enable true
+            }
+            QZone {
+                appId "1106640558"
+                appKey "GkYcFq1RgewnwQKi"
+                bypassApproval false
+                shareByAppClient true
+                enable true
+            }
+        }
+    }
+}
+android {
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
+    defaultConfig {
+        applicationId "com.wuyr.catchpiggy"
+        minSdkVersion 16
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:26.0.2'
+    testCompile 'junit:junit:4.12'
+    compile 'com.tencent.bugly:crashreport:latest.release'
+}

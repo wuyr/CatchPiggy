@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">Catch Piggy</string>
+    <string name="fix_pigsty_mode">Fix Pigsty Mode</string>
+    <string name="classic_mode">Classic Mode</string>
+    <string name="start_catch">"Don't let the piggies run! Build a pigsty surrounded by them"</string>
+    <string name="car_is_coming">Piggies has  been caught! bus is coming!</string>
+    <string name="piggies_has_run">Oh dear! The piggies has run!</string>
+    <string name="drag_pig">Drag the piggies to the car</string>
+    <string name="exit_dialog_message">Are you sure exit?</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+    <string name="level_format" formatted="false">Level %d</string>
+    <string name="continue_game">Continue game</string>
+    <string name="back_to_menu">Back to menu</string>
+    <string name="no_permission">Please do not reject the request</string>
+    <string name="share_achievements">Share the achievements:</string>
+    <string name="again">Again</string>
+    <string name="next">Next</string>
+    <string name="request_help">Ask friends for help:</string>
+    <string name="menu">Menu</string>
+    <string name="classic_mode_won_message_format" formatted="false">Congratulations!\nTime consumed: %ds\nWoods consumed : %d</string>
+    <string name="classic_mode_lose_message_format" formatted="false">Oh dear! almost caught it!\nDo it again!</string>
+    <string name="pigsty_mode_mission_message_format" formatted="false">Level %d\n\nThe piglets need caught: %d</string>
+    <string name="pigsty_mode_won_message_format" formatted="false">Congratulations!\nTime consumed: %ds\nThe piglets caught by: %d\nWoods consumed: %d</string>
+    <string name="pigsty_mode_lose_message_format" formatted="false">Oh dear! almost complete the mission!\nDo it again!\nThe piglets caught by: %d\nThe piglets need caught: %d</string>
+    <string name="start">Start</string>
+    <string name="heart_is_empty">Take a rest and come back again</string>
+    <string name="request_help_format">哎呀！这关我过不了，太难了，能帮我过一下吗？</string>
+    <string name="classic_mode_share_won_format" formatted="false">嘿！我第%d关只用了%d个木头就把小猪给圈住了，求超越！</string>
+    <string name="pigsty_mode_share_won_format" formatted="false">嘿！我第%d关只用了%d个木头就把%d只小猪给捉住了，求超越！</string>
+    <string name="next_page">Next page</string>
+    <string name="previous_page">Previous page</string>
+    <string name="close">Close</string>
+</resources>

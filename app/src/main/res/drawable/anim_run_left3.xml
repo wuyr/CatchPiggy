@@ -1,0 +1,27 @@
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false">
+    <item
+        android:drawable="@mipmap/ic_occupied_left_1"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_2"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_3"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_4"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_5"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_6"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_7"
+        android:duration="36" />
+    <item
+        android:drawable="@mipmap/ic_occupied_left_8"
+        android:duration="36" />
+</animation-list>

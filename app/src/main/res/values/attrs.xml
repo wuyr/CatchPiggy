@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ClassicMode">
+        <attr name="item_size" format="dimension"/>
+        <attr name="prop_view_size" format="dimension"/>
+        <attr name="item_spacing" format="dimension"/>
+        <attr name="item_horizontal_count" format="integer"/>
+        <attr name="item_vertical_count" format="integer"/>
+    </declare-styleable>
+</resources>

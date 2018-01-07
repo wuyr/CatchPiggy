@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/message"
+        android:layout_width="@dimen/xhpx_480"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/ic_board"
+        android:clickable="false"
+        android:focusable="false"
+        android:gravity="center"
+        android:paddingBottom="@dimen/xhpx_64"
+        android:paddingEnd="@dimen/xhpx_32"
+        android:paddingStart="@dimen/xhpx_32"
+        android:paddingTop="@dimen/xhpx_64"
+        android:text="@string/heart_is_empty"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_32"
+        android:textStyle="bold" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/menu_button"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/xhpx_90"
+        android:layout_marginTop="@dimen/xhpx_16"
+        android:background="@mipmap/ic_board"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/menu"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_28"
+        android:textStyle="bold" />
+</LinearLayout>

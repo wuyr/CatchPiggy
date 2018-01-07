@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/continue_game_btn"
+        android:layout_width="@dimen/xhpx_350"
+        android:layout_height="@dimen/xhpx_90"
+        android:background="@mipmap/ic_board"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/continue_game"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_32"
+        android:textStyle="bold" />
+
+    <com.wuyr.catchpiggy.customize.views.AnimationButton
+        android:id="@+id/back_to_menu_btn"
+        android:layout_width="@dimen/xhpx_350"
+        android:layout_height="@dimen/xhpx_90"
+        android:layout_marginTop="@dimen/xhpx_32"
+        android:background="@mipmap/ic_board"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/back_to_menu"
+        android:textColor="@color/colorButtonText"
+        android:textSize="@dimen/xhpx_32"
+        android:textStyle="bold" />
+
+</LinearLayout>
