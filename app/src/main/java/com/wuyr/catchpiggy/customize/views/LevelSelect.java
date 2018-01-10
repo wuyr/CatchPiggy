@@ -16,13 +16,16 @@ import com.wuyr.catchpiggy.utils.BitmapUtil;
  * Created by wuyr on 17-12-31 下午8:13.
  */
 
+/**
+ * 关卡列表
+ */
 public class LevelSelect extends ViewGroup {
 
-    private AnimationButton mItems[];
-    private MyDrawable mItemDrawable, mItemDrawableDisable;
-    private int mItemSize;
-    private int mMaxCount;
-    private OnLevelSelectedListener mOnLevelSelectedListener;
+    private AnimationButton mItems[];//关卡按钮实例
+    private MyDrawable mItemDrawable, mItemDrawableDisable;//未通过的关卡不能点击
+    private int mItemSize;//按钮的尺寸
+    private int mMaxCount;//最大关卡数
+    private OnLevelSelectedListener mOnLevelSelectedListener;//关卡点击回调
 
     public LevelSelect(Context context) {
         this(context, null);
@@ -43,6 +46,7 @@ public class LevelSelect extends ViewGroup {
         if (count > mMaxCount) {
             count = mMaxCount;
         }
+        //可以玩的关卡就显示数字和接受点击事件
         if (mItems != null) {
             for (int i = 0; i < count; i++) {
                 AnimationButton item = mItems[i];
@@ -66,6 +70,7 @@ public class LevelSelect extends ViewGroup {
                 mOnLevelSelectedListener.onSelected((int) v.getTag());
             }
         };
+        //初始化关卡按钮
         for (int i = 0; i < count; i++) {
             AnimationButton temp = new AnimationButton(getContext());
             temp.setBackground(mItemDrawableDisable);
@@ -97,6 +102,7 @@ public class LevelSelect extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        //排序关卡按钮,每行5个
         if (mItems != null) {
             int maxWidth = mItemSize * 4;
             int currentWidth;

@@ -11,10 +11,13 @@ import com.wuyr.catchpiggy.R;
  * Created by wuyr on 17-12-24 下午11:24.
  */
 
+/**
+ * 主页
+ */
 public class HomeView extends RelativeLayout {
 
+    public boolean isMute;//静音
     private OnButtonClickListener mOnButtonClickListener;
-    public boolean isMute;
 
     public HomeView(Context context) {
         this(context, null);
@@ -62,6 +65,9 @@ public class HomeView extends RelativeLayout {
         post(() -> ((RandomPiggies) findViewById(R.id.random_piggies)).startShow());
     }
 
+    /**
+     * 停止生成随机的小猪跑过动画
+     */
     public void stopShow() {
         ((RandomPiggies) findViewById(R.id.random_piggies)).stopShow();
     }
@@ -77,6 +83,9 @@ public class HomeView extends RelativeLayout {
         }
     }
 
+    /**
+     各个按钮的点击事件回调
+     */
     public interface OnButtonClickListener {
         void onPigstyModeButtonClicked();
 

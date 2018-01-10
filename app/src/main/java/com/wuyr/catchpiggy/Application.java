@@ -11,11 +11,11 @@ import com.tencent.bugly.crashreport.CrashReport;
 
 public class Application extends com.mob.MobApplication {
 
-    private static final String NAME = Application.class.getSimpleName();
     //经典模式 新手指引对话框
     public static final String CLASSIC_MODE_GUIDE_DIALOG_SHOWN = "ClassicModeGuideDialogShown";
     //修猪圈模式 新手指引对话框
     public static final String PIGSTY_MODE_GUIDE_DIALOG_SHOWN = "PigstyModeGuideDialogShown";
+    private static final String NAME = Application.class.getSimpleName();
     //经典模式当前关卡
     private static final String CURRENT_CLASSIC_MODE_LEVEL = "CurrentClassicModeLevel";
     //修猪圈模式当前关卡
@@ -48,23 +48,6 @@ public class Application extends com.mob.MobApplication {
     private static final long MAX_DRAG_COUNT = 3L;
     //经典模式-拖动 刷新时长 2天
     private static final long DRAG_RECOVER_DURATION = 172800000L;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        //init bugly
-        CrashReport.initCrashReport(this, "488e87756b", false);
-    }
-
-    @Override
-    protected String getAppkey() {
-        return "23557c69a0de4";
-    }
-
-    @Override
-    protected String getAppSecret() {
-        return "1b92a94a1fa59ccf0c9a58865c928d7c";
-    }
 
     public static SharedPreferences getSharedPreferences(Context context) {
         return context.getSharedPreferences(NAME, MODE_PRIVATE);
@@ -268,5 +251,22 @@ public class Application extends com.mob.MobApplication {
                 }
             }
         }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        //init bugly
+        CrashReport.initCrashReport(this, "488e87756b", false);
+    }
+
+    @Override
+    protected String getAppkey() {
+        return "23557c69a0de4";
+    }
+
+    @Override
+    protected String getAppSecret() {
+        return "1b92a94a1fa59ccf0c9a58865c928d7c";
     }
 }

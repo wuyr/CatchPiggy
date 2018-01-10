@@ -24,13 +24,17 @@ import java.util.concurrent.Future;
  * Created by wuyr on 17-10-30 上午12:43.
  */
 
+/**
+ * 主页中生成随机小猪跑过的动画
+ */
 public class RandomPiggies extends ViewGroup {
 
     private Random mRandom;
-    private Future mTask;
-    private volatile boolean isNeed;
+    private Future mTask;//生成小猪动画的线程
+    private volatile boolean isNeed;//需要生成
     private OnTouchListener mOnTouchListener;
-    private int mDropWidth, mDropHeight, mRunWidth;
+    private int mDropWidth, mDropHeight,//小猪接受触摸事件的长宽
+            mRunWidth;//小猪实际宽度
 
     public RandomPiggies(Context context) {
         this(context, null);
@@ -59,6 +63,7 @@ public class RandomPiggies extends ViewGroup {
             int y = (int) event.getY() + v.getTop();
             MyLayoutParams lp = (MyLayoutParams) v.getLayoutParams();
             switch (event.getAction()) {
+                //手指按住小猪,就播放被拖动的动画
                 case MotionEvent.ACTION_DOWN:
                     ((ViewPropertyAnimator) v.getTag()).cancel();
                     ((ImageView) v).setImageResource(lp.isLeft ? R.drawable.anim_drop_right : R.drawable.anim_drop_left);
@@ -74,6 +79,7 @@ public class RandomPiggies extends ViewGroup {
                     v.setTag(R.id.position_data, new WayData(x, y));
                     requestLayout();
                     break;
+                //跟随手指移动
                 case MotionEvent.ACTION_MOVE:
                     lp.isDrag = true;
                     int lastX = 0, lastY = 0;
@@ -89,6 +95,10 @@ public class RandomPiggies extends ViewGroup {
                     break;
                 case MotionEvent.ACTION_CANCEL:
                 case MotionEvent.ACTION_UP:
+                    //手指松开后,恢复播放动画
+                    //根据 时间 * 速度 = 路程
+                    //先计算出小猪的速度(因为每个小猪的速度都是随机的)
+                    //然后根据速度和剩下的距离计算出需要的时长
                     lp.isDrag = true;
                     lastX = 0;
                     lastY = 0;
@@ -143,12 +153,14 @@ public class RandomPiggies extends ViewGroup {
     }
 
     public void startShow() {
+        //避免多个线程同时生成
         if (mTask != null) {
             stopShow();
         }
         mTask = ThreadPool.getInstance().execute(() -> {
             isNeed = true;
             while (isNeed) {
+                //生成随机大小,方向,速度的小猪跑过的动画,并接受触摸事件
                 post(() -> {
                     ImageView imageView = new ImageView(getContext());
                     MyLayoutParams layoutParams = new MyLayoutParams(0, 0);
@@ -223,6 +235,7 @@ public class RandomPiggies extends ViewGroup {
 
         @Override
         public void onAnimationEnd(Animator animation) {
+            //小猪跑出屏幕后自动移除
             if (!isHasDragAction) {
                 mViewGroup.removeView(mView);
                 mViewGroup = null;

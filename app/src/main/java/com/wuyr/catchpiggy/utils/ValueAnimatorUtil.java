@@ -9,6 +9,9 @@ import java.lang.reflect.Field;
  * Created by wuyr on 17-11-11 下午11:59.
  */
 
+/**
+ * 用来重置动画缩放时长的工具类
+ */
 public class ValueAnimatorUtil {
 
     /**

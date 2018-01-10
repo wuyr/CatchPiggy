@@ -37,31 +37,39 @@ import java.util.Stack;
  * Created by wuyr on 17-9-29 下午8:09.
  */
 
+/**
+ * 经典模式
+ */
 @SuppressWarnings("EmptyCatchBlock")
 public class ClassicMode extends ViewGroup {
 
-    private int[][] mItemStatus;
-    private Item[][] mItems;
-    private Stack<int[][]> mHistory;
-    private int mHorizontalPos, mVerticalPos;
-    private int mItemSize;
-    private int mItemSpacing;
-    private int mVerticalCount;
-    private int mHorizontalCount;
-    private int mItemPadding;
-    private View mDropTouchView;
-    private OnTouchListener mDropTouchListener;
-    private ImageView mSelectedView, mOccupiedView, mDropView;
-    private boolean isAnimationPlaying, mLastItemIsLeft;
+    private int[][] mItemStatus;//棋盘状态
+    private Item[][] mItems;//棋盘的实例对象
+    private Stack<int[][]> mHistory;//保存历史
+    private int mHorizontalPos, mVerticalPos;//当前小猪的位置
+    private int mItemSize;//单个格子的尺寸
+    private int mItemSpacing;//格子之间的外间距
+    private int mVerticalCount;//棋盘的行数
+    private int mHorizontalCount;//棋盘的列数
+    private int mItemPadding;//格子之间的内间距
+    private View mDropTouchView;//接受拖动手势的view
+    private OnTouchListener mDropTouchListener;//拖动小猪的监听
+    private ImageView mSelectedView,//选择状态下的view (有木头)
+            mOccupiedView, //占用状态 (小猪站立的)
+            mDropView;//拖动状态 (小猪被拖动)
+    private boolean isAnimationPlaying, mLastItemIsLeft;//小猪面朝的方向
     private int mOffset;
     private Random mRandom;
+
+    //小猪各种状态下的动画
     private AnimationDrawable mGoLeftAnimationDrawable, mGoRightAnimationDrawable,
             mDropLeftAnimationDrawable, mDropRightAnimationDrawable;
     private OnGameOverListener mOnGameOverListener;
     private OnPiggyDraggedListener mOnPiggyDraggedListener;
-    private boolean isDragEnable, isNavigationOn;
+    private boolean isDragEnable, //开启拖动
+            isNavigationOn;//开启导航
     private boolean isGameOver;
-    private int mCurrentLevel;
+    private int mCurrentLevel;//当前关卡
     private int mLastX, mLastY;
 
     public ClassicMode(Context context) {
@@ -102,6 +110,7 @@ public class ClassicMode extends ViewGroup {
         mCurrentLevel = level;
         refresh();
         if (mCurrentLevel > 0) {
+            //初始化默认的木头
             int[][] position = LevelUtil.getDefaultFencePosition(mVerticalCount, mHorizontalCount, level);
             for (int vertical = 0; vertical < mVerticalCount; vertical++) {
                 for (int horizontal = 0; horizontal < mHorizontalCount; horizontal++) {
@@ -111,9 +120,13 @@ public class ClassicMode extends ViewGroup {
                     }
                 }
             }
-        } else setRandomSelected();
+        } else {
+            //随机选择木头
+            setRandomSelected();
+        }
     }
 
+    //重置
     public void refresh() {
         isGameOver = false;
         if (isAnimationPlaying) {
@@ -128,11 +141,13 @@ public class ClassicMode extends ViewGroup {
         requestLayout();
     }
 
+    //撤销
     public void undo() {
         if (isAnimationPlaying || mHistory.empty() || isGameOver) {
             return;
         }
-        mItemStatus = mHistory.pop();
+        mItemStatus = mHistory.pop();//在历史堆栈里面出栈
+        //调整状态
         for (int vertical = 0; vertical < mVerticalCount; vertical++) {
             for (int horizontal = 0; horizontal < mHorizontalCount; horizontal++) {
                 Item item = mItems[vertical][horizontal];
@@ -147,6 +162,7 @@ public class ClassicMode extends ViewGroup {
         }
     }
 
+    //释放资源
     public void release() {
         if (mItems != null) {
             for (int vertical = 0; vertical < mVerticalCount; vertical++) {
@@ -177,6 +193,7 @@ public class ClassicMode extends ViewGroup {
         return mHistory == null ? 0 : mHistory.size();
     }
 
+    //游戏结束,不接受触摸事件
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         return isGameOver;
@@ -190,6 +207,12 @@ public class ClassicMode extends ViewGroup {
         setClipToPadding(false);
         mItemStatus = new int[mVerticalCount][mHorizontalCount];
         mItems = new Item[mVerticalCount][mHorizontalCount];
+        /*
+        小猪的触摸监听:
+		action down: 隐藏站立的小猪，显示拖动状态的小猪，并播放动画
+		action move：跟随手指移动
+		action up：根据小猪的腿的位置来判断应该要把小猪放在哪个格子上
+		*/
         mDropTouchListener = (v, event) -> {
             if (!isDragEnable) {
                 return false;
@@ -241,7 +264,9 @@ public class ClassicMode extends ViewGroup {
             }
             return true;
         };
+        //初始化棋盘状态和格子的实例
         initChildrenViews((horizontalPos, verticalPos) -> {
+            //格子按下的监听
             if (isAnimationPlaying) {
                 return;
             }
@@ -256,6 +281,7 @@ public class ClassicMode extends ViewGroup {
     private void locationOccupiedView(float x, float y) {
         RectF rect = new RectF();
         boolean isPlaceChanged = false;
+        //根据x,y 查找所在的格子上
         for (int vertical = 0; vertical < mVerticalCount; vertical++) {
             for (int horizontal = 0; horizontal < mHorizontalCount; horizontal++) {
                 Item item = mItems[vertical][horizontal];
@@ -285,6 +311,7 @@ public class ClassicMode extends ViewGroup {
             }
         }
         isAnimationPlaying = false;
+        // x, y所在的位置无效
         if (!isPlaceChanged) {
             mItems[mVerticalPos][mHorizontalPos].showOccupiedImage();
             mDropView.setVisibility(INVISIBLE);
@@ -294,6 +321,7 @@ public class ClassicMode extends ViewGroup {
                 mDropRightAnimationDrawable.stop();
             }
         } else {
+            //重新检测是否被木头围住了
             WayData2 left = computeLeft();
             WayData2 leftTop = computeLeftTop();
             WayData2 leftBottom = computeLeftBottom();
@@ -317,6 +345,9 @@ public class ClassicMode extends ViewGroup {
         }
     }
 
+    /**
+     * 初始化棋盘状态和格子的实例
+     */
     private void initChildrenViews(Item.OnItemPressedListener onItemPressedListener) {
         BitmapDrawable unselectedDrawable = getUnselectedDrawable();
         BitmapDrawable selectedDrawable = getSelectedDrawable();
@@ -386,10 +417,13 @@ public class ClassicMode extends ViewGroup {
         addView(mDropTouchView);
     }
 
+    /**
+     计算小猪下一步应该走哪一个格子
+     */
     private void computeWay() {
         mOffset = mVerticalPos % 2 == 0 ? 0 : 1;
         int offset2 = mVerticalPos % 2 == 0 ? 1 : 0;
-        List<WayData> ways = new ArrayList<>();
+        List<WayData> ways = new ArrayList<>();//这个用来保存6个方向的信息(空闲格子数, 这条线上是否有障碍, 格子上的坐标)
 
         //left
         WayData2 left = computeLeft();
@@ -426,7 +460,9 @@ public class ClassicMode extends ViewGroup {
         if (rightBottom.item != null) {
             ways.add(new WayData(rightBottom.count, rightBottom.isBlock, mHorizontalPos + offset2, mVerticalPos + 1));
         }
+        //重新排序一下, 以空闲格子数,从小到大排序
         Collections.sort(ways, (o1, o2) -> (o1.count < o2.count) ? -1 : ((o1.count == o2.count) ? 0 : 1));
+        //如果上下左右,左上,左下,右上,右下,这6个方向的空闲格子数都是<2,则判定游戏结束
         if (left.isBlock && left.count < 2
                 && right.isBlock && right.count < 2
                 && leftTop.isBlock && leftTop.count < 2
@@ -444,8 +480,11 @@ public class ClassicMode extends ViewGroup {
         }
         WayData nextPos = null;
         try {
+            //找出路
             nextPos = ComputeWayUtil.findWay(mCurrentLevel, mItemStatus, new WayData(mHorizontalPos, mVerticalPos), ways);
+            //没找到出路,则处于一个封闭的圈子里面
             if (nextPos == null) {
+                //在6个方向里面,随机找一个空闲的格子当作下一步要走的位置
                 while (true) {
                     nextPos = ways.get(mRandom.nextInt(ways.size()));
                     if (mItemStatus[nextPos.y][nextPos.x] != Item.STATE_SELECTED) {
@@ -455,6 +494,7 @@ public class ClassicMode extends ViewGroup {
             }
             findExit(nextPos);
         } catch (ArrayIndexOutOfBoundsException e) {
+            //如果数组越界,则判定小猪已经走出了棋盘范围,游戏结束
             isAnimationPlaying = true;
             mDropTouchView.setOnTouchListener(null);
             isGameOver = true;
@@ -466,9 +506,13 @@ public class ClassicMode extends ViewGroup {
         }
     }
 
+    /**
+     播放小猪跑掉了的动画
+     */
     private void startRunAnimation(WayData wayData) {
         Item item;
         PositionData positionData = new PositionData();
+        //根据小猪的当前位置来确定动画的起止点
         if (wayData.x >= mHorizontalCount) {
             item = mItems[wayData.y][wayData.x - 1];
             positionData.startX = item.getX();
@@ -493,6 +537,9 @@ public class ClassicMode extends ViewGroup {
         mOccupiedView.startAnimation(getRunAnimation(item, positionData));
     }
 
+    /**
+     下面这些都是计算6个方向的信息(空闲格子数, 这条线上是否有障碍, 格子上的坐标)
+     */
     private WayData2 computeLeft() {
         return computeDirection((count, isSameGroup, tmp) -> mItems[mVerticalPos][mHorizontalPos - count]);
     }
@@ -541,6 +588,9 @@ public class ClassicMode extends ViewGroup {
         return new WayData2(item, count, isBlock);
     }
 
+    /**
+     处理找出口的逻辑
+     */
     private void findExit(WayData tmp) {
         mItemStatus[mVerticalPos][mHorizontalPos] = Item.STATE_UNSELECTED;
         mItemStatus[tmp.y][tmp.x] = Item.STATE_OCCUPIED;
@@ -556,6 +606,9 @@ public class ClassicMode extends ViewGroup {
         mHorizontalPos = tmp.x;
     }
 
+    /**
+     判断小猪的方向
+     */
     private boolean isLeft(int x) {
         if (x == mHorizontalPos) {
             return mVerticalPos % 2 == 0;
@@ -564,6 +617,9 @@ public class ClassicMode extends ViewGroup {
         }
     }
 
+    /**
+     复制格子状态数组
+     */
     private int[][] copyItemStatus() {
         int[][] result = new int[mVerticalCount][mHorizontalCount];
         for (int vertical = 0; vertical < mVerticalCount; vertical++) {
@@ -572,6 +628,9 @@ public class ClassicMode extends ViewGroup {
         return result;
     }
 
+    /**
+     重置全部选择状态下的格子
+     */
     private void clearAllSelected() {
         for (int vertical = 0; vertical < mVerticalCount; vertical++) {
             for (int horizontal = 0; horizontal < mHorizontalCount; horizontal++) {
@@ -581,6 +640,9 @@ public class ClassicMode extends ViewGroup {
         }
     }
 
+    /**
+     随机木头
+     */
     private void setRandomSelected() {
         int selectedSize = (Math.min(mHorizontalCount, mVerticalCount) / 2) + 1;
         int tmp = 0;
@@ -605,6 +667,7 @@ public class ClassicMode extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int currentWidth;
         int currentHeight;
+        //定位格子
         for (int vertical = 0; vertical < mVerticalCount; vertical++) {
             currentHeight = (mItemSize * vertical) + (mItemSpacing / 2 * vertical);
             for (int horizontal = 0; horizontal < mHorizontalCount; horizontal++) {
@@ -625,6 +688,9 @@ public class ClassicMode extends ViewGroup {
         mOnGameOverListener = listener;
     }
 
+    /**
+     木头出现时候的动画
+     */
     public Animation getFenceAnimation(final Item selectedItem) {
         selectedItem.startAnimation(getItemTouchAnimation());
         AnimationSet animationSet = new AnimationSet(false);
@@ -655,6 +721,9 @@ public class ClassicMode extends ViewGroup {
         return animationSet;
     }
 
+    /**
+     格子触摸时的动画
+     */
     public Animation getItemTouchAnimation() {
         ScaleAnimation scaleAnimation = new ScaleAnimation(1, .7F, 1, .7F, Animation.RELATIVE_TO_SELF, .5F, Animation.RELATIVE_TO_SELF, .5F);
         scaleAnimation.setDuration(130);
@@ -663,6 +732,9 @@ public class ClassicMode extends ViewGroup {
         return scaleAnimation;
     }
 
+    /**
+     下面这些都是返回各个状态的BitmapDrawable
+     */
     public BitmapDrawable getSelectedDrawable() {
         BitmapDrawable selectedDrawable = new BitmapDrawable(getResources(),
                 BitmapFactory.decodeResource(getResources(), R.mipmap.ic_selected));
@@ -712,6 +784,9 @@ public class ClassicMode extends ViewGroup {
         return (float) mItemSize / occupiedDrawableRight.getBitmap().getWidth();
     }
 
+    /**
+     小猪逃跑的动画，动画完成后，弹出游戏结束对话框
+     */
     public TranslateAnimation getRunAnimation(final Item item, PositionData positionData) {
         if (positionData.startX < positionData.endX) {
             mOccupiedView.setImageDrawable(mGoRightAnimationDrawable);
@@ -751,6 +826,9 @@ public class ClassicMode extends ViewGroup {
         return animation;
     }
 
+    /**
+     小猪走路的动画
+     */
     private TranslateAnimation getWalkAnimation(final Item oldItem, final Item newItem, final boolean isLeft) {
         TranslateAnimation animation = new TranslateAnimation(oldItem.getX(), newItem.getX(),
                 oldItem.getBottom() - mOccupiedView.getHeight(), newItem.getBottom() - mOccupiedView.getHeight());
@@ -775,6 +853,8 @@ public class ClassicMode extends ViewGroup {
                 requestLayout();
                 isAnimationPlaying = false;
                 mDropTouchView.setOnTouchListener(mDropTouchListener);
+
+                //初始化导航的格子
                 if (isNavigationOn) {
                     List<WayData> guide = ComputeWayUtil.findWay2(mItemStatus, new WayData(mHorizontalPos, mVerticalPos));
                     if (guide != null && !guide.isEmpty()) {

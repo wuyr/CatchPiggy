@@ -8,6 +8,9 @@ import java.util.concurrent.Future;
  * Created by wuyr on 17-11-30 下午8:19.
  */
 
+/**
+ * 单例的线程池
+ */
 public class ThreadPool {
 
     private volatile static ThreadPool mInstance;
@@ -32,15 +35,15 @@ public class ThreadPool {
         }
     }
 
-    public Future<?> execute(Runnable command) {
-        return mThreadPool.submit(command);
-    }
-
     public static void shutdown() {
         if (mInstance != null) {
             mInstance.mThreadPool.shutdownNow();
             mInstance = null;
         }
+    }
+
+    public Future<?> execute(Runnable command) {
+        return mThreadPool.submit(command);
     }
 
     @Override

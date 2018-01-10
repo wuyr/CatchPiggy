@@ -15,18 +15,21 @@ import java.util.concurrent.Future;
  * Created by wuyr on 17-12-8 上午2:50.
  */
 
+/**
+ * 修猪圈模式中的树头(未放置)位置更新辅助类
+ */
 public class PropOffsetHelper {
 
-    private float mPropOffsetSpeed;
-    private MyDrawable mPropDrawable;
-    private List<PropData> mProps;
-    private List<Integer> mLeavedProps;
-    private float mStartX, mStartY;
-    private int mPropSize;
-    private Future mUpdateTask;
-    private float mLeftOffset;
-    private volatile boolean isNeed;
-    private long mLastStopTime;
+    private float mPropOffsetSpeed;//树头的移动速度
+    private MyDrawable mPropDrawable;//树头的图片
+    private List<PropData> mProps;//全部树头的数据
+    private List<Integer> mLeavedProps;//已放置的树头(索引)
+    private float mStartX, mStartY;//树头一开始的位置
+    private int mPropSize;//树头尺寸
+    private Future mUpdateTask;//更新位置的线程
+    private float mLeftOffset;//左边的偏移量
+    private volatile boolean isNeed;//是否需要更新位置
+    private long mLastStopTime;//上一次暂停的时间
 
     public PropOffsetHelper(Bitmap propBitmap, int width, int height, int propSize) {
         mPropDrawable = new MyDrawable(0, propBitmap);
@@ -44,14 +47,23 @@ public class PropOffsetHelper {
         return mProps.get(index).drawable;
     }
 
+    /**
+     * 判断该索引的树头是否已经放置
+     */
     public boolean isPropLeaved(int index) {
         return mLeavedProps.contains(index);
     }
 
+    /**
+     获取已放置的树头数量
+     */
     public int getLeavedPropCount() {
         return mLeavedProps.size();
     }
 
+    /**
+     添加一个树头
+     */
     public void addProp() {
         PropData data = new PropData(mPropDrawable.clone());
         data.setY(mStartY);
@@ -68,23 +80,30 @@ public class PropOffsetHelper {
         mProps.get(index).setY(y);
     }
 
+    /**
+     有树头脱队
+     */
     public void propLeaved(int index) {
         mLeavedProps.add(index);
     }
 
+    /**
+     画队列中的(未放置的)树头
+     */
     public void drawInQueueProps(Canvas canvas) {
         for (int i = 0; i < mProps.size(); i++) {
             if (!mLeavedProps.contains(i)) {
                 mProps.get(i).draw(canvas);
-                //LogUtil.print(mProps.get(i));
             }
         }
     }
 
+    /**
+     画已放置的树头
+     */
     public void drawLeavedProps(Canvas canvas) {
         for (int i = 0; i < mLeavedProps.size(); i++) {
             mProps.get(mLeavedProps.get(i)).draw(canvas);
-            //LogUtil.print(mProps.get(mLeavedProps.get(i)));
         }
     }
 
@@ -92,14 +111,19 @@ public class PropOffsetHelper {
         return mProps.size();
     }
 
+    //树头高度
     public int getPropHeight() {
         return mPropDrawable.getIntrinsicHeight();
     }
 
+    //树头宽度
     public int getPropWidth() {
         return mPropDrawable.getIntrinsicWidth();
     }
 
+    /**
+     停止生成
+     */
     public void stop() {
         isNeed = false;
         if (mUpdateTask != null) {
@@ -109,6 +133,7 @@ public class PropOffsetHelper {
         mLastStopTime = SystemClock.uptimeMillis();
     }
 
+    //获取队列中的(未放置的)树头数量
     public int getQueueSize() {
         return mProps.size() - mLeavedProps.size();
     }
@@ -116,20 +141,25 @@ public class PropOffsetHelper {
     public void restart() {
         updatePropGenerateTime();
         isNeed = true;
+        //更新树头位置线程
         mUpdateTask = ThreadPool.getInstance().execute(() -> {
-            boolean isFinished;
-            float distance, offset;
-            int hitOffsetCount;
-            long intervalTime, updateTime;
+            boolean isFinished;//树头是否已经到对应的位置
+            float distance,//需要偏移的路程
+                    offset;//本次更新的偏移量
+            int hitOffsetCount;//排在该树头前面的,并且已经离队的(已放置),需要忽略距离
+            long intervalTime,//上次更新与现在的间隔时间
+                    updateTime;//今次更新时间
             while (isNeed) {
                 for (int i = 0; i < mProps.size(); i++) {
                     PropData prop = mProps.get(i);
+                    //已离队的不需要更新位置
                     if (mLeavedProps.contains(i)) {
                         continue;
                     }
                     distance = i * mPropSize + mLeftOffset;
                     hitOffsetCount = 0;
                     for (int j = 0; j < mLeavedProps.size(); j++) {
+                        //检查是否有离队的树头
                         if (mLeavedProps.get(j) < i) {
                             hitOffsetCount++;
                         }
@@ -138,9 +168,13 @@ public class PropOffsetHelper {
                     isFinished = prop.getX() <= distance;
                     updateTime = SystemClock.uptimeMillis();
                     if (!isFinished) {
+                        //计算间隔时间
                         intervalTime = updateTime - prop.lastUpdateTime;
+                        //大于10毫秒才作处理
                         if (intervalTime > 10) {
+                            //路程 = 时间 * 速度
                             offset = intervalTime * mPropOffsetSpeed;
+                            //更新数据
                             prop.setX(prop.getX() - offset);
                             prop.lastUpdateTime = updateTime;
                         }
@@ -152,6 +186,9 @@ public class PropOffsetHelper {
         });
     }
 
+    /**
+     更新线程停止后又重新开始,需要加上停止的这段时间
+     */
     private void updatePropGenerateTime() {
         if (mLastStopTime > 0) {
             long totalStoppedTime = SystemClock.uptimeMillis() - mLastStopTime;

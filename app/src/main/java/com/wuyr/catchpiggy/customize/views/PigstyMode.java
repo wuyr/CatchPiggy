@@ -55,47 +55,29 @@ import java.util.concurrent.Future;
  * Created by wuyr on 17-11-12 下午11:20.
  */
 
+/**
+ * 亡猪补牢模式
+ * 实现方式:
+ * 利用矩形的坐标来确定小猪和树头的释放
+ * 先初始化矩形二维数组:
+ *  * * * * * *
+ * * * * * * *
+ *  * * * * * *
+ * * * * * * *
+ *  * * * * * *
+ * * * * * * *
+ * 单双行错开排列,铺满屏幕.
+ * 小猪和树头拖动完, 手指松开后, 根据小猪当前坐标来确定现处于哪个矩形里面,
+ * 再根据矩形的坐标,来重新调整小猪和树头的位置,把它们定位到此矩形的中心
+ * 矩形本身不显示的,只是用来储存坐标数据
+ */
 public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
-    private static final int MAX_PROP_SIZE;
-    private static final int PIGGY_COUNT;
-    private static final int VERTICAL_COUNT;
-    private static final int HORIZONTAL_COUNT;
-    private static final long FENCE_FIX_ANIMATION_DURATION;
-    private final byte[] PROP_GENERATE_TASK_LOCK;
-    private String mLevelStringFormat;
-    private String mCarIsComingText, mPiggiesHasRunText, mStartCatchText, mDragPigText;
-    private Future mDrawTask, mPropGenerateTask;
-    private SurfaceHolder mSurfaceHolder;
-    private Rect[][] mItems;
-    private volatile int[][] mItemStatus;
-    private Pig[] mPiggies;
-    private volatile boolean isDrawing;
-    private int mPropSize, mItemSize;
-    private Set<Integer> mDraggingProps, mDraggingPiggies;
-    private SparseIntArray mDraggingPropIds, mDraggingPiggyIds;
-    private Future[] mComputePathTasks;
-    private PropOffsetHelper mPropOffsetHelper;
-    private WayData[] mPiggiesOccupiedPosition;
-    private Bitmap mFrameBackgroundBitmap;
-    private NinePatch mFrameBackground;
-    private MyDrawable mCarHead, mCarBody;
-    private volatile boolean isNeed;
-    private int mWidth, mHeight;
-    private int mLeftOffset;
-    private int mTop;
-    private volatile boolean isStopped;
-    private volatile boolean isPiggyByCar;
-    private boolean isFirstInit, isGameOver, isWon, isCarDispatched, isCarArrived, isAllPiggiesAreReady;
-    private boolean[] mCarriageIsOccupied;
-    private TextPaint mPaint;
-    private List<Integer> mCaughtPiggies;
-    private SparseIntArray mCaughtPiggiesPosition;
-    private long mStartTime;
-    private int mCurrentLevel;
-    private boolean isMissionDialogShown;
-    private int mValidCaughtCount;
-    private MissionData mMissionData;
+    private static final int MAX_PROP_SIZE;//树头最大同时存在的数量(未放置的)
+    private static final int PIGGY_COUNT;//小猪数量
+    private static final int VERTICAL_COUNT;//矩形行数
+    private static final int HORIZONTAL_COUNT;//矩形列数
+    private static final long FENCE_FIX_ANIMATION_DURATION;//树头调整位置的动画时长
 
     static {
         MAX_PROP_SIZE = 6;
@@ -105,8 +87,58 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         FENCE_FIX_ANIMATION_DURATION = 150L;
     }
 
+    private final byte[] PROP_GENERATE_TASK_LOCK;//树头生成的锁(当树头(未放置的)达到设定的最大值后,暂停生成)
+    private String mLevelStringFormat;//当前关卡格式
+    private String mCarIsComingText, //车来了
+            mPiggiesHasRunText, //猪全跑了
+            mStartCatchText, //开始捉猪
+            mDragPigText;//把小猪拖到车上
+    private Future mDrawTask, //绘制线程
+            mPropGenerateTask;//树头生成线程
+    private SurfaceHolder mSurfaceHolder;
+    private Rect[][] mItems;//矩形二维数组
+    private volatile int[][] mItemStatus;//用来保存对应的矩形状态(小猪占用,木头占用,空闲)
+    private Pig[] mPiggies;//小猪实例
+    private volatile boolean isDrawing;//绘制中
+    private int mPropSize, //树头尺寸
+            mItemSize;//矩形尺寸
+    //临时保存的数据
+    private Set<Integer> mDraggingProps,//正在拖动的树头
+            mDraggingPiggies;//正在拖动的小猪
+    //正在拖动的小猪,树头的触摸事件的id(用来确定是哪一个手指)
+    private SparseIntArray mDraggingPropIds, mDraggingPiggyIds;
+    private Future[] mComputePathTasks;//用来计算小猪逃跑路线的线程
+    private PropOffsetHelper mPropOffsetHelper;//用来更新树头(未放置的)偏移位置的辅助类
+    private WayData[] mPiggiesOccupiedPosition;//用来保存各个小猪当前占用中的矩形坐标
+    private Bitmap mFrameBackgroundBitmap;//顶部绿色的背景(用来释放资源)
+    private NinePatch mFrameBackground;//顶部绿色背景的.9图
+    private MyDrawable mCarHead,//车头
+            mCarBody;//车身
+    private volatile boolean isNeed;//是否需要更新树头坐标
+    private int mWidth, mHeight;//屏幕宽高
+    private int mLeftOffset;//树头的左边偏移量
+    private int mTop;//树头(未放置的)top值
+    private volatile boolean isStopped;//停止生成
+    private volatile boolean isPiggyByCar; //小猪在坐车(不接受手指拖动事件,小猪跟随小车移动)
+    private boolean isFirstInit, //第一次初始化(播放小车开过动画)
+            isGameOver,//游戏结束
+            isWon, //赢了
+            isCarDispatched, //车在路上(屏幕内的小猪全部无路走,被围住了)
+            isCarArrived, //车来到了
+            isAllPiggiesAreReady;//被围住的小猪全部都被拖上车了
+    private boolean[] mCarriageIsOccupied;//小车后面的车厢是否空闲状态
+    private TextPaint mPaint;
+    private List<Integer> mCaughtPiggies;//被围住的小猪
+    private SparseIntArray mCaughtPiggiesPosition;//key: 车厢索引 value: 车厢上对应的小猪索引
+    private long mStartTime;//开始时间
+    private int mCurrentLevel;//当前关卡
+    private boolean isMissionDialogShown;//任务对话框
+    private int mValidCaughtCount;//有效捉到的小猪
+    private MissionData mMissionData;//任务
+    private AlertDialog mMissionDialog, mGameResultDialog, mExitDialog, mHeartEmptyDialog;
+
     {
-        PROP_GENERATE_TASK_LOCK = new byte[0];
+        PROP_GENERATE_TASK_LOCK = new byte[0];//最省内存
     }
 
     public PigstyMode(Context context) {
@@ -176,16 +208,20 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                     break;
             }
         };
+        //小猪所在的矩形变更(更新位置)
         Pig.OnPositionUpdateListener onPositionUpdateListener = (pig, oldPosition, newPosition) -> {
             changeItemStatus(oldPosition.y, oldPosition.x, Item.STATE_UNSELECTED);
             if (pig.getState() == Pig.STATE_RUNNING) {
+                //将小猪上一个矩形的状态设为空闲,将新的矩形状态设为小猪占用
                 changeItemStatus(newPosition.y, newPosition.x, Item.STATE_OCCUPIED);
                 pig.setPosition(newPosition.y, newPosition.x);
                 mPiggiesOccupiedPosition[pig.getIndex()] = newPosition;
             }
         };
+        //每一个小猪逃跑动画结束后,都检查一次是否满足游戏结束条件
         Pig.OnLeavedListener onLeavedListener = this::checkIsGameOver;
         float scale = mItemSize / (mItemSize * 1.15F);
+        //初始化小猪
         for (int i = 0; i < PIGGY_COUNT; i++) {
             Pig pig = new Pig(getContext(), scale);
             pig.setIndex(i);
@@ -214,7 +250,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         Rect rect = mItems[pos.y][pos.x];
         int offsetX = (mItemSize - pig.getWidth()) / 2 + (pig.getOrientation() == Pig.ORIENTATION_LEFT ? -mItemSize / 2 : (int) -(pig.getWidth() * .33)) + mItemSize / 2;
         int offsetY = (int) ((mItemSize / 2) - (pig.getHeight() * .75));
+        //找出路
         mComputePathTasks[pig.getIndex()] = ThreadPool.getInstance().execute(() -> {
+            //不用播放调整位置的动画,就直接在本线程里面执行调整位置的动画
             if (!isPlayAnimation) {
                 MyValueAnimator.create(pig.getX(), rect.left + offsetX, pig.getY(), rect.top + offsetY, pig).setDuration(FENCE_FIX_ANIMATION_DURATION).setRunOnCurrentThread().start();
             }
@@ -222,11 +260,13 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
             if (Thread.interrupted()) {
                 return;
             }
+            //获取逃跑路线
             List<WayData> wayDataList = ComputeWayUtil.findWay4(mItemStatus, mPiggiesOccupiedPosition, pig.getPosition());
             if (Thread.interrupted()) {
                 return;
             }
             if (wayDataList != null && wayDataList.size() > 1) {
+                //初始化路径后,播放路径动画
                 MyPath path = initPath(pig, wayDataList, offsetX, offsetY, isPlayAnimation);
                 pig.setPathAnimation(path, wayDataList).setDuration(wayDataList.size() * mMissionData.speed)
                         .setRepeat(!ComputeWayUtil.isEdge(VERTICAL_COUNT, HORIZONTAL_COUNT, wayDataList.get(wayDataList.size() - 1)));
@@ -238,17 +278,22 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                 if (Thread.interrupted()) {
                     return;
                 }
+                //找不到出路, 播放一个位移动画,退回小猪原来的位置上
                 pig.startTranslateAnimation(rect.left + offsetX, rect.top + offsetY);
             }
             pig.setEnable(true);
+            //检查是否满足游戏结束条件
             checkIsGameOver();
         });
     }
 
+    /**
+     * 检查游戏是否结束
+     */
     private void checkIsGameOver() {
         if (!isGameOver) {
-            int caughtCount = 0;
-            int runCount = 0;
+            int caughtCount = 0;//被圈住走不了的小猪数量
+            int runCount = 0;//逃跑了的小猪数量
             mCaughtPiggies.clear();
             for (int i = 0; i < PIGGY_COUNT; i++) {
                 Pig pig = mPiggies[i];
@@ -272,6 +317,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                     }
                 }
             }
+            //被圈住和逃跑了的小猪之和等于所有小猪数量,则判定游戏结束
             if (caughtCount + runCount >= PIGGY_COUNT) {
                 isWon = caughtCount > 0;
                 initGameOver();
@@ -284,7 +330,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         if (isWon) {
             //车来到之前不能操作，避免猪走了
             for (Pig pig: mPiggies) {
-               pig.setEnable(false);
+                pig.setEnable(false);
             }
             mCarHead.setY(0);
             MyValueAnimator.create(mCarHead.getX(), 0, 0, 0, mCarHead)
@@ -320,6 +366,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         }
     }
 
+    /**
+     初始化小猪逃跑的路径, 根据data里面的数据来获取二维数组里面矩形坐标,从而拼成一条完整的逃跑路线
+     */
     private MyPath initPath(Pig pig, List<WayData> data, int offsetX, int offsetY, boolean isPlayAnimation) {
         MyPath path = new MyPath();
         Rect item = mItems[data.get(0).y][data.get(0).x];
@@ -334,6 +383,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         Queue<WayData> queue = new ArrayDeque<>(data);
         while (!queue.isEmpty()) {
             item = mItems[queue.peek().y][queue.poll().x];
+            //队列中还有两个数据,则用quadTo,只有一条,就用lineTo
             if (!queue.isEmpty()) {
                 Rect item2 = mItems[queue.peek().y][queue.poll().x];
                 path.quadTo(item.left + offsetX, item.top + offsetY, item2.left + offsetX, item2.top + offsetY);
@@ -345,6 +395,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         return path;
     }
 
+    /**
+     放置树头,根据树头当前的坐标来找出对应二维数据里面的矩形的坐标,从而重新定位到该矩形中心
+     */
     private void setProp(int index) {
         if (mPropOffsetHelper.isPropLeaved(index)) {
             MyDrawable fence = mPropOffsetHelper.getPropDrawable(index);
@@ -355,6 +408,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                     int y = (int) (fence.getY() + fence.getIntrinsicHeight() * .66);
                     if (item.contains(x, y)) {
                         List<WayData> data = new ArrayList<>();
+                        //如果当前位置已有树头或者小猪占用,则以当前位置为中心,向周围6个方向寻找下一个,一直到找到空闲位置为止
                         if (!ComputeWayUtil.isCurrentPositionCanSet(mItemStatus, mPiggiesOccupiedPosition, new WayData(horizontal, vertical), data)) {
                             if (data.isEmpty()) {
                                 for (Pig pig : mPiggies) {
@@ -387,6 +441,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         }
     }
 
+    /**
+     通知有新的树头放下, 有逃跑路径在这个新占用位置上的小猪,都要重新计算新的逃跑路线(旧的已经无效了)
+     */
     private void positionOccupied(int vertical, int horizontal) {
         for (int i = 0; i < PIGGY_COUNT; i++) {
             Pig pig = mPiggies[i];
@@ -425,6 +482,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         int currentX, currentY;
         int childrenY = (getHeight() - mItemSize * VERTICAL_COUNT - mItemSize) / 2 + mItemSize / 2,
                 childrenX = (getWidth() - mItemSize * HORIZONTAL_COUNT - mItemSize) / 2 + mItemSize / 2;
+        //初始化矩形二维数组, 用单双行交错的方式排列
         for (int vertical = 0; vertical < VERTICAL_COUNT; vertical++) {
             currentY = mItemSize * vertical;
             for (int horizontal = 0; horizontal < HORIZONTAL_COUNT; horizontal++) {
@@ -475,6 +533,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         return isStopped;
     }
 
+    /**
+     开始绘制
+     */
     public void restart() {
         isStopped = false;
         if (mStartTime == 0) {
@@ -508,6 +569,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         mPropOffsetHelper = new PropOffsetHelper(propBitmap, getWidth(), getHeight(), mPropSize);
     }
 
+    /**
+     停止绘制
+     */
     public void stop() {
         isStopped = true;
         isDrawing = false;
@@ -605,6 +669,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         drawText(canvas);
     }
 
+    /**
+     画车
+     */
     private void drawCar(Canvas canvas, boolean isNeedDrawPiggies) {
         mCarHead.draw(canvas);
         for (int i = 0; i < PIGGY_COUNT; i++) {
@@ -622,6 +689,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         }
     }
 
+    /**
+     画文字提示
+     */
     private void drawText(Canvas canvas) {
         String text = null;
         if (!isCarDispatched) {
@@ -740,6 +810,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         return true;
     }
 
+    /**
+     更新树头位置
+     */
     private void updatePosition(Point point, int index) {
         float offsetY = mPropSize / 2;
         float offsetX = mPropOffsetHelper.getPropWidth() / 2;
@@ -751,8 +824,10 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
             y = getHeight() - mPropOffsetHelper.getPropHeight();
         }
 
+        //如果树头被向上拖动超过自身高度,则认定离队(可以上下左右移动)
         if (y + mPropOffsetHelper.getPropHeight() < mTop) {
             if (!mPropOffsetHelper.isPropLeaved(index)) {
+                //有树头离队,要通知树头生成线程继续生成
                 mPropOffsetHelper.propLeaved(index);
                 synchronized (PROP_GENERATE_TASK_LOCK) {
                     PROP_GENERATE_TASK_LOCK.notifyAll();
@@ -790,6 +865,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         mPropGenerateTask = ThreadPool.getInstance().execute(() -> {
             while (isNeed) {
                 synchronized (PROP_GENERATE_TASK_LOCK) {
+                    //当前未离队的树头数量达到指定值,则暂停生成
                     while (mPropOffsetHelper.getQueueSize() >= MAX_PROP_SIZE) {
                         try {
                             PROP_GENERATE_TASK_LOCK.wait();
@@ -811,6 +887,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         });
     }
 
+    /**
+     小车开过的动画
+     */
     private void playInitAnimation() {
         isPiggyByCar = true;
         mCarHead.setX(mWidth + mCarHead.getIntrinsicWidth());
@@ -824,6 +903,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         isFirstInit = false;
     }
 
+    /**
+     手指按下小猪移动(播放小猪被拖动的动画)
+     */
     private void pigActionMove(Pig pig, MotionEvent event, int index) {
         if (pig.getState() != Pig.STATE_DRAGGING) {
             pig.setState(Pig.STATE_DRAGGING);
@@ -832,6 +914,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         pig.setY(event.getY(index) - pig.getWidth() / 2);
     }
 
+    /**
+     手指按下小猪(小猪跟随手指移动)
+     */
     private void pigActionDown(Pig pig, MotionEvent event, int index) {
         stopTask(pig);
         pig.setState(Pig.STATE_DRAGGING);
@@ -841,12 +926,17 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         pigActionMove(pig, event, index);
     }
 
+    /**
+     手指松开小猪(重新定位小猪位置,并且开始找出路)
+     */
     private void pigActionUp(Pig pig, boolean isPlayAnimation) {
         for (int vertical = 0; vertical < VERTICAL_COUNT; vertical++) {
             for (int horizontal = 0; horizontal < HORIZONTAL_COUNT; horizontal++) {
                 Rect item = mItems[vertical][horizontal];
                 int x = (int) (pig.getX() + pig.getDragWidth() * (pig.getOrientation() == Pig.ORIENTATION_LEFT ? .75 : .25));
                 int y = (int) (pig.getY() + pig.getHeight() * .66);
+                //如果是全部小猪被圈住,且车已经来到,则判断当前小猪位置是否在小车附近,
+                //如果在小车附近,则将小猪移动到车卡上,如果不在小车附近,则播放位移动画,返回小猪原来的位置上
                 if (isCarArrived) {
                     if (x < 0 || x > mWidth || y > mCarHead.getIntrinsicHeight()) {
                         WayData pos = pig.getPosition();
@@ -878,7 +968,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                                     readyCount++;
                                 }
                             }
-
+                            //每次有小猪上车时,判断是否全部已捉到的小猪都已经上车,如果全部小猪都已经上了车,则把车开走
                             if (readyCount == mCaughtPiggies.size() && !isAllPiggiesAreReady) {
                                 isAllPiggiesAreReady = true;
                                 MyValueAnimator.create(mCarHead.getX(), -(mCarHead.getIntrinsicWidth() * 2 + mCarBody.getIntrinsicWidth() * 6), mCarHead.getY(), mCarHead.getY(), mCarHead)
@@ -888,6 +978,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                     }
                     return;
                 }
+                //正常状态下,重新调整小猪位置后,开始找逃跑路线
                 if (item.contains(x, y)) {
                     List<WayData> data = new ArrayList<>();
                     if (!ComputeWayUtil.isCurrentPositionCanSet(mItemStatus, mPiggiesOccupiedPosition, new WayData(horizontal, vertical), data)) {
@@ -918,9 +1009,13 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                 }
             }
         }
+        //站立状态
         pig.setState(Pig.STATE_STANDING);
     }
 
+    /**
+     获取最近的空车厢
+     */
     private int getNearestEmptyCarriage(float[] carBodyCenterPos, int x) {
         int result = 0;
         float lastDistance = 0;
@@ -1023,6 +1118,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         }
     }
 
+    /**
+     检查游戏结果是否满足任务条件
+     */
     private boolean checkIsStandard() {
         boolean result = false;
         mValidCaughtCount = 0;
@@ -1037,8 +1135,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         return result;
     }
 
-    private AlertDialog mMissionDialog, mGameResultDialog, mExitDialog, mHeartEmptyDialog;
-
+    /**
+     任务对话框
+     */
     private void showMissionDialog() {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_pigsty_mode_mission_view, null, false);
         OnClickListener onClickListener = v -> {
@@ -1062,15 +1161,20 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         mMissionDialog = new AlertDialog.Builder(getContext(), R.style.DialogTheme).setView(dialogView).setCancelable(false).show();
     }
 
+    //赢了
     private void showVictoryDialog() {
         Application.saveCurrentPigstyModeLevel(getContext(), mCurrentLevel + 1);
         showGameResultDialog(false);
     }
 
+    //输了
     private void showFailureDialog() {
         showGameResultDialog(true);
     }
 
+    /**
+     游戏结束的对话框
+     */
     private void showGameResultDialog(boolean isRequestHelp) {
         String message = isRequestHelp ? String.format(Locale.getDefault(), getContext().getString(R.string.pigsty_mode_lose_message_format), mValidCaughtCount, mMissionData.mustCaughtCount)
                 : String.format(Locale.getDefault(), getContext().getString(R.string.pigsty_mode_won_message_format),
@@ -1134,6 +1238,9 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         post(() -> mGameResultDialog = new AlertDialog.Builder(getContext(), R.style.DialogTheme).setView(dialogView).setCancelable(false).show());
     }
 
+    /**
+     无心
+     */
     private void showHeartIsEmptyDialog() {
         //main thread
         post(() -> {

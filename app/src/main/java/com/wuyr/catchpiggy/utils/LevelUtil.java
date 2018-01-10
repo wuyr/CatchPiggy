@@ -9,9 +9,12 @@ import com.wuyr.catchpiggy.models.MissionData;
 
 public class LevelUtil {
 
-    public static int CLASSIC_MODE_MAX_LEVEL = 50;
-    public static int PIGSTY_MODE_MAX_LEVEL = 51;
+    public static int CLASSIC_MODE_MAX_LEVEL = 50;//经典模式关卡数
+    public static int PIGSTY_MODE_MAX_LEVEL = 51;//亡猪补牢模式关卡数
 
+    /**
+     * 亡猪补牢模式任务获取
+     */
     public static MissionData getMissionData(int level) {
         MissionData missionData = new MissionData();
         switch (level) {
@@ -328,6 +331,9 @@ public class LevelUtil {
         return missionData;
     }
 
+    /**
+     * 经典模式获取默认的树头坐标
+     */
     public static int[][] getDefaultFencePosition(int verticalCount, int horizontalCount, int level) {
         int[][] data = new int[verticalCount][horizontalCount];
         switch (level) {

@@ -5,9 +5,9 @@ package com.wuyr.catchpiggy.models;
  */
 
 public class WayData {
-    public int count;
-    public boolean isBlock;
-    public int x, y;
+    public int count;//方向上空闲状态的格子数
+    public boolean isBlock;//中间是否有障碍
+    public int x, y;//位置
 
     public WayData(int count, boolean isBlock, int x, int y) {
         this.count = count;

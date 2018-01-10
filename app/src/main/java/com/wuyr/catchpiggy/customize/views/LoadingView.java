@@ -19,12 +19,16 @@ import com.wuyr.catchpiggy.utils.ThreadPool;
  * Created by wuyr on 17-12-24 下午9:51.
  */
 
+/**
+ * 界面之间跳转的过度动画
+ */
 public class LoadingView extends SurfaceView implements Runnable {
 
-    private Paint mPaint;
-    private int mCenterX, mCenterY, mCurrentRadius;
-    private int mMaxRadius;
     public boolean isOpen, isLoading, isProcessing;
+    private Paint mPaint;
+    //中心点的坐标和当前圆的半径
+    private int mCenterX, mCenterY, mCurrentRadius;
+    private int mMaxRadius;//圆的半径
     private SurfaceHolder mSurfaceHolder;
 
     public LoadingView(Context context) {
@@ -65,6 +69,9 @@ public class LoadingView extends SurfaceView implements Runnable {
         }));
     }
 
+    /**
+     * 播放动画
+     */
     private void startAnimation(MyValueAnimator.OnAnimatorEndListener onAnimatorEndListener) {
         setVisibility(VISIBLE);
         ThreadPool.getInstance().execute(this);
@@ -72,6 +79,7 @@ public class LoadingView extends SurfaceView implements Runnable {
             if (!isOpen) {
                 progress = 1F - progress;
             }
+            //更新圆的半径
             mCurrentRadius = (int) (mMaxRadius * progress);
         }).setOnAnimatorEndListener(onAnimatorEndListener).start();
     }
@@ -81,6 +89,7 @@ public class LoadingView extends SurfaceView implements Runnable {
         super.onSizeChanged(w, h, oldw, oldh);
         mCenterX = w / 2;
         mCenterY = h / 2;
+        //圆的最大半径取手机屏幕对角线的一半
         mMaxRadius = (int) Math.sqrt(Math.pow(mCenterX, 2) + Math.pow(mCenterY, 2));
     }
 
@@ -92,6 +101,7 @@ public class LoadingView extends SurfaceView implements Runnable {
                 return;
             }
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            //画圆
             canvas.drawCircle(mCenterX, mCenterY, mCurrentRadius, mPaint);
             mSurfaceHolder.unlockCanvasAndPost(canvas);
         }

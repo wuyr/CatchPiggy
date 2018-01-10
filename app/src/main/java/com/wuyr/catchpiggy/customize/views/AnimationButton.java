@@ -11,6 +11,9 @@ import android.view.animation.ScaleAnimation;
  * Created by wuyr on 17-12-25 下午9:43.
  */
 
+/**
+ * 一个扩展自TextView的控件，加了自动播放点击动画
+ */
 public class AnimationButton extends android.support.v7.widget.AppCompatTextView {
 
     public AnimationButton(Context context) {

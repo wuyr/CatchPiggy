@@ -14,6 +14,9 @@ import android.support.annotation.DrawableRes;
 
 public class BitmapUtil {
 
+    /**
+     * 缩放Bitmap
+     */
     public static Bitmap scaleBitmap(Bitmap target, int w, int h) {
         int width = target.getWidth();
         int height = target.getHeight();
@@ -22,6 +25,9 @@ public class BitmapUtil {
         return Bitmap.createBitmap(target, 0, 0, width, height, matrix, true);
     }
 
+    /**
+     * 缩放drawable
+     */
     public static BitmapDrawable scaleDrawable(BitmapDrawable drawable, int w, int h) {
         Bitmap oldBitmap = drawable.getBitmap();
         int width = oldBitmap.getWidth();
@@ -38,6 +44,9 @@ public class BitmapUtil {
         return BitmapFactory.decodeResource(context.getResources(), id);
     }
 
+    /**
+     去色
+     */
     public static Bitmap toGray(Bitmap target) {
         Bitmap temp = target.copy(Bitmap.Config.ARGB_8888, true);
         int width = temp.getWidth(), height = temp.getHeight();

@@ -13,24 +13,33 @@ import java.util.Queue;
  * Created by wuyr on 17-10-16 下午11:54.
  */
 
+/**
+ * 亡猪补牢模式计算小猪逃跑路线的工具类
+ */
 public class ComputeWayUtil {
-    private static final int STATE_WALKED = 3;
+    private static final int STATE_WALKED = 3;//状态标记(已走过)
 
+    /**
+     * 以currentPos为中心点,向周围6个方向查找空闲的位置(广度优先遍历)
+     */
     public static WayData findNextUnSelected(int[][] items, List<WayData> ignorePos, WayData currentPos) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
         Queue<WayData> way = new ArrayDeque<>();
         int[][] pattern = new int[verticalCount][horizontalCount];
         for (int vertical = 0; vertical < verticalCount; vertical++) {
+            //复制数组(因为要对数组元素值进行修改)
             System.arraycopy(items[vertical], 0, pattern[vertical], 0, horizontalCount);
         }
-        way.offer(currentPos);
-        pattern[currentPos.y][currentPos.x] = STATE_WALKED;
-        while (!way.isEmpty()) {
-            WayData header = way.poll();
-            List<WayData> directions = getCanArrivePosUnchecked(pattern, header);
+        way.offer(currentPos);//当前pos先入队
+        pattern[currentPos.y][currentPos.x] = STATE_WALKED;//状态标记(已走过)
+        while (!way.isEmpty()) {//队列不为空
+            WayData header = way.poll();//队头出队
+            List<WayData> directions = getCanArrivePosUnchecked(pattern, header);//获取周围6个方向的位置(不包括越界的)
+            //遍历周边的位置
             for (int i = 0; i < directions.size(); i++) {
                 WayData direction = directions.get(i);
+                //判断该位置是否空闲,如果是空闲则直接返回,如果不是空闲,则入队,下次以它为中心,寻找周边的元素
                 if (!currentPos.equals(direction) && items[direction.y][direction.x] == Item.STATE_UNSELECTED && !(ignorePos != null && ignorePos.contains(direction))) {
                     return direction;
                 } else {
@@ -38,16 +47,22 @@ public class ComputeWayUtil {
                 }
             }
         }
+        //队列直至为空还没返回,则找不到了
         return null;
     }
 
+    /**
+     经典模式小猪找出路
+     */
     public static WayData findWay(int level, int[][] items, WayData currentPos, List<WayData> data) {
+        //经典模式第10关之后,小猪变聪明
         if (level < 0 || level > 10) {
             List<WayData> list = findWay2(items, currentPos);
             if (list != null && list.size() >= 2) {
                 return list.get(1);
             }
         }
+        //第10关之前,向周围没有被拦住(可以直线一直走)的方向走
         WayData result = null;
         for (WayData tmp : data) {
             if (!tmp.isBlock) {
@@ -83,6 +98,8 @@ public class ComputeWayUtil {
         temp.add(currentPos);
         footprints.add(temp);
         pattern[currentPos.y][currentPos.x] = STATE_WALKED;
+
+        //广度优先遍历(同上)
         while (!way.isEmpty()) {
             WayData header = way.poll();
             List<WayData> directions = getCanArrivePos(pattern, header);
@@ -118,6 +135,16 @@ public class ComputeWayUtil {
         return null;
     }
 
+    /**
+     判断当前位置是否能放置树头(如果在一个封闭的圈子里面,则连小猪当前位置也要计算)例如:(0表示树头 .表示小猪)
+     * * * * * * *
+     *  * 0 0 0 * *
+     * * 0 . . 0 * 
+     *  * 0 * 0 * *
+     * * * 0 0 * *
+     *  * * * * * *
+     计算出来空闲的结果是1,也即是可以放置,如果再多一个小猪在里面,则不可放置
+     */
     public static boolean isCurrentPositionCanSet(int[][] items, WayData[] occupiedPos, WayData currentPos, List<WayData> result) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
@@ -155,6 +182,9 @@ public class ComputeWayUtil {
         return count < result.size();
     }
 
+    /**
+     广度遍历优先(同上)
+     */
     public static List<WayData> findWay4(int[][] items, WayData[] ignorePositions, WayData currentPos) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
@@ -209,6 +239,9 @@ public class ComputeWayUtil {
         return footprints.isEmpty() ? null : footprints.get(footprints.size() - 1);
     }
 
+    /**
+     广度遍历优先(同上) (不优选结果,保留全部能够到达边缘的走法)
+     */
     public static List<WayData> findWay3(int[][] items, WayData currentPos) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
@@ -259,10 +292,16 @@ public class ComputeWayUtil {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    /**
+     检查是不是在边界
+     */
     public static boolean isEdge(int verticalCount, int horizontalCount, WayData direction) {
         return direction.x == 0 || direction.x == horizontalCount - 1 || direction.y == 0 || direction.y == verticalCount - 1;
     }
 
+    /**
+     检查是不是在边界
+     */
     private static boolean isEdge2(int verticalCount, int horizontalCount, List<WayData> list2) {
         return list2.get(list2.size() - 1).y == 0
                 || list2.get(list2.size() - 1).x == 0
@@ -270,6 +309,9 @@ public class ComputeWayUtil {
                 || list2.get(list2.size() - 1).x == horizontalCount - 1;
     }
 
+    /**
+     检查src是否跟list中最后一个元素的位置是一样的
+     */
     private static boolean canLinks(WayData src, List<WayData> list) {
         boolean isCanLinks = false;
         if (!list.isEmpty()) {
@@ -281,6 +323,9 @@ public class ComputeWayUtil {
         return isCanLinks;
     }
 
+    /**
+     寻找周围6个方向可以到达的位置(不包括越界的,标记过的,不是空闲的)
+     */
     public static List<WayData> getCanArrivePos(int[][] items, WayData currentPos) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
@@ -299,6 +344,9 @@ public class ComputeWayUtil {
         return result;
     }
 
+    /**
+     寻找周围6个方向可以到达的位置(不包括越界的)
+     */
     private static List<WayData> getCanArrivePosUnchecked(int[][] items, WayData currentPos) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
@@ -315,6 +363,9 @@ public class ComputeWayUtil {
         return result;
     }
 
+    /**
+     检查是否有出路
+     */
     public static boolean isHasExit(int[][] items, WayData currentPos) {
         int verticalCount = items.length;
         int horizontalCount = items[0].length;
@@ -353,28 +404,37 @@ public class ComputeWayUtil {
         LogUtil.print("-\n\n-");
     }
 
+    /**
+     根据当前方向获取对应的位置
+     */
     private static WayData getNextPosition(WayData currentPos, int offset, int offset2, int direction) {
         WayData result = new WayData(currentPos.x, currentPos.y);
         switch (direction) {
             case 0:
+                //左
                 result.x -= 1;
                 break;
             case 1:
+                //左上
                 result.x -= offset;
                 result.y -= 1;
                 break;
             case 2:
+                //左下
                 result.x -= offset;
                 result.y += 1;
                 break;
             case 3:
+                //右
                 result.x += 1;
                 break;
             case 4:
+                //右上
                 result.x += offset2;
                 result.y -= 1;
                 break;
             case 5:
+                //右下
                 result.x += offset2;
                 result.y += 1;
                 break;

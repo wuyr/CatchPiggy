@@ -17,17 +17,20 @@ import java.util.concurrent.Semaphore;
  * Created by wuyr on 17-11-21 下午8:03.
  */
 
+/**
+ * 自定义的Drawable，类似于AnimationDrawable
+ */
 public class MyDrawable extends Drawable implements Cloneable {
 
-    private Semaphore mSemaphore;
-    private Bitmap[] mBitmaps;
+    private final int mDelay;//帧延时
+    private final byte[] mLock;//控制线程暂停的锁
+    private Semaphore mSemaphore;//来用控制线程更新问题
+    private Bitmap[] mBitmaps;//帧
     private Paint mPaint;
-    private final int mDelay;
-    private int mCurrentIndex;
-    private float x, y;
-    private Future mTask;
-    private final byte[] mLock;
-    private volatile boolean isPaused;
+    private int mCurrentIndex;//当前帧索引
+    private float x, y;//当前坐标
+    private Future mTask;//帧动画播放的任务
+    private volatile boolean isPaused;//已暂停
 
     public MyDrawable(int delay, Bitmap... bitmaps) {
         mSemaphore = new Semaphore(1);

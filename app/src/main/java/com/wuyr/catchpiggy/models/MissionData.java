@@ -11,9 +11,9 @@ import java.util.Locale;
  */
 
 public class MissionData {
-    public long speed;
-    public long propDelay;
-    public int mustCaughtCount;
+    public long speed;//小猪速度
+    public long propDelay;//树头出现的隔间时间
+    public int mustCaughtCount;//必须要捉到的小猪个数
 
     public String toString(Context context, int currentLevel) {
         String format = context.getString(R.string.pigsty_mode_mission_message_format);

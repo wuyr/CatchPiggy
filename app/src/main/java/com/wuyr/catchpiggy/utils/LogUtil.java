@@ -12,11 +12,6 @@ import java.lang.annotation.RetentionPolicy;
 @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
 public class LogUtil {
 
-    @IntDef({VERBOSE, DEBUG, INFO, WARN, ERROR})
-    @Retention(RetentionPolicy.SOURCE)
-    private @interface DEBUG_LEVEL {
-    }
-
     public static final int VERBOSE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5;
     private static boolean isDebugOn, isShowClassName;
     private static int debugLevel = DEBUG;
@@ -71,5 +66,10 @@ public class LogUtil {
                     break;
             }
         }
+    }
+
+    @IntDef({VERBOSE, DEBUG, INFO, WARN, ERROR})
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface DEBUG_LEVEL {
     }
 }

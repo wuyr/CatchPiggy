@@ -22,20 +22,20 @@ public class PropData {
         drawable.draw(canvas);
     }
 
-    public void setX(float x) {
-        drawable.setX(x);
-    }
-
-    public void setY(float y) {
-        drawable.setY(y);
-    }
-
     public float getX() {
         return drawable.getX();
     }
 
+    public void setX(float x) {
+        drawable.setX(x);
+    }
+
     public float getY() {
         return drawable.getY();
+    }
+
+    public void setY(float y) {
+        drawable.setY(y);
     }
 
     public void release() {

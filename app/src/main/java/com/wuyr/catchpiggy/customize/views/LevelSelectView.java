@@ -25,13 +25,20 @@ import java.io.IOException;
  * Created by wuyr on 18-1-5 上午12:38.
  */
 
+/**
+ * 关卡选择和心的view
+ */
 public class LevelSelectView extends LinearLayout {
 
-    private HeartView mHeartView;
-    private LevelSelect mLevelSelect;
-    private boolean isClassicMode, isGuideDialogShown;
-    private Bitmap[] mGuideImages;
-    private int mDialogCurrentPageIndex;
+    private HeartView mHeartView;//心
+    private LevelSelect mLevelSelect;//关卡选择
+    private boolean isClassicMode,
+            isGuideDialogShown;//新手指引对话框只显示一次
+    private Bitmap[] mGuideImages;//新手指引的图片
+    private int mDialogCurrentPageIndex;//新手指引对话框的页数索引
+    private Dialog mHeartEmptyDialog;
+    private Dialog mGuideDialog;
+    private View mDialogView;
 
     public LevelSelectView(Context context) {
         this(context, null);
@@ -52,16 +59,25 @@ public class LevelSelectView extends LinearLayout {
         mLevelSelect = findViewById(R.id.level_select);
     }
 
+    /**
+     * 当前有效心数量
+     */
     public void setValidHeartCount(int count) {
         mHeartView.setValidHeartCount(count);
     }
 
+    /**
+     总关卡数
+     */
     public void setMaxLevelCount(int count) {
         mLevelSelect.setMaxItemCount(count);
         isClassicMode = count == LevelUtil.CLASSIC_MODE_MAX_LEVEL + 1;
         initGuideDialogData();
     }
 
+    /**
+     新手对话框
+     */
     public void initGuideDialogData() {
         isGuideDialogShown = Application.getSharedPreferences(getContext()).getBoolean(
                 isClassicMode ? Application.CLASSIC_MODE_GUIDE_DIALOG_SHOWN : Application.PIGSTY_MODE_GUIDE_DIALOG_SHOWN, false);
@@ -84,17 +100,22 @@ public class LevelSelectView extends LinearLayout {
         }
     }
 
+    /**
+     可以玩的关卡数
+     */
     public void setValidLevelCount(int count) {
         mLevelSelect.setValidItemCount(count);
     }
 
     public void setOnLevelSelectedListener(LevelSelect.OnLevelSelectedListener levelSelectedListener) {
         mLevelSelect.setOnLevelSelectedListener(level -> {
+            //点击关卡按钮的时候,如果是第一次进入,则显示新手指引对话框
             if (!isGuideDialogShown) {
                 isGuideDialogShown = true;
                 showGuideDialog();
                 return;
             }
+            //检查心够不够,够才开始游戏
             if (checkHeartIsEnough()) {
                 levelSelectedListener.onSelected(level);
             } else {
@@ -103,8 +124,9 @@ public class LevelSelectView extends LinearLayout {
         });
     }
 
-    private Dialog mHeartEmptyDialog;
-
+    /**
+     不够心的对话框
+     */
     private void showHeartIsEmptyDialog() {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_heart_is_empty_view, null, false);
         dialogView.findViewById(R.id.menu_button).setOnClickListener(v -> {
@@ -116,19 +138,20 @@ public class LevelSelectView extends LinearLayout {
         }
     }
 
+    /**
+     检查心够不够
+     */
     private boolean checkHeartIsEnough() {
         return (isClassicMode ?
                 Application.getClassicModeCurrentValidHeartCount(getContext())
                 : Application.getPigstyModeCurrentValidHeartCount(getContext())) > 0;
     }
 
-    private Dialog mGuideDialog;
-    private View mDialogView;
-
     private void showGuideDialog() {
         mDialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_guide_view, null, false);
         OnClickListener onClickListener = v -> {
             switch (v.getId()) {
+                //上一页按钮
                 case R.id.previous:
                     if (mDialogCurrentPageIndex > 0) {
                         mDialogCurrentPageIndex--;
@@ -137,6 +160,7 @@ public class LevelSelectView extends LinearLayout {
                         }
                     }
                     break;
+                //下一页按钮,如果是最后一页,就显示关闭按钮
                 case R.id.next:
                     if (mDialogCurrentPageIndex < 2) {
                         mDialogCurrentPageIndex++;
@@ -147,6 +171,7 @@ public class LevelSelectView extends LinearLayout {
                         mGuideDialog.dismiss();
                         Application.getSharedPreferences(getContext()).edit().putBoolean(isClassicMode ?
                                 Application.CLASSIC_MODE_GUIDE_DIALOG_SHOWN : Application.PIGSTY_MODE_GUIDE_DIALOG_SHOWN, true).apply();
+                        //对话框关闭后,及时释放资源
                         ((ImageView) mDialogView.findViewById(R.id.image_view)).setImageBitmap(null);
                         mDialogView = null;
                         if (mGuideImages != null) {
@@ -169,6 +194,7 @@ public class LevelSelectView extends LinearLayout {
         mDialogView.findViewById(R.id.previous).setOnClickListener(onClickListener);
         mDialogView.findViewById(R.id.next).setOnClickListener(onClickListener);
         if (mGuideImages != null) {
+            //默认显示第一张图片
             ((ImageView) mDialogView.findViewById(R.id.image_view)).setImageBitmap(mGuideImages[0]);
         }
         mGuideDialog = new AlertDialog.Builder(getContext(), R.style.DialogTheme).setView(mDialogView).setCancelable(false).show();

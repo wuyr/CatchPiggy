@@ -24,41 +24,34 @@ import java.util.concurrent.atomic.AtomicReference;
  * Created by wuyr on 17-11-21 下午5:45.
  */
 
+/**
+ * 小猪
+ */
 public class Pig {
-
-    @IntDef({STATE_DRAGGING, STATE_RUNNING, STATE_STANDING})
-    @IntRange(from = STATE_STANDING, to = STATE_DRAGGING)
-    @Retention(RetentionPolicy.SOURCE)
-    private @interface State {
-    }
-
-    @IntDef({ORIENTATION_LEFT, ORIENTATION_RIGHT})
-    @IntRange(from = ORIENTATION_LEFT, to = ORIENTATION_RIGHT)
-    @Retention(RetentionPolicy.SOURCE)
-    private @interface Orientation {
-    }
 
     public static final int STATE_STANDING = 0, STATE_RUNNING = 1, STATE_DRAGGING = 2;
     public static final int ORIENTATION_LEFT = 0, ORIENTATION_RIGHT = 1;
+    public volatile boolean isInitialized;
+    public boolean isLeaved;//是否已跑出屏幕
     private int mState, mOrientation;
-    private int mIndex;
-    private volatile int mVerticalPos, mHorizontalPos;
-    private int mWidth, mHeight;
-    private boolean isEnable;
-    private float mScale;
-    private float mX, mY;
+    private int mIndex;//小猪索引
+    private volatile int mVerticalPos, mHorizontalPos;//小猪当前所在位置
+    private int mWidth, mHeight;//小猪长宽
+    private boolean isEnable;//是否接受触摸事件
+    private float mScale;//源图片的缩放比例
+    private float mX, mY;//小猪的坐标
+
+    //小猪各个状态下的图片
     private MyDrawable mRunningLeftDrawable, mDraggingLeftDrawable, mRunningRightDrawable,
             mDraggingRightDrawable, mStandingLeftDrawable, mStandingRightDrawable;
     private OnTouchListener mOnTouchListener;
     private MyValueAnimator mValueAnimator;
     private PathAnimation mPathAnimation;
     private int mItemSize;
-    private List<WayData> mPathData;
+    private List<WayData> mPathData;//逃跑路线
     private OnPositionUpdateListener mOnPositionUpdateListener;
     private OnLeavedListener mOnLeavedListener;
-    private Semaphore mSemaphore;
-    public volatile boolean isInitialized;
-    public boolean isLeaved;
+    private Semaphore mSemaphore;//控制小猪更新位置的信号量
 
     public Pig(Context context, float scale) {
         mScale = scale;
@@ -81,6 +74,7 @@ public class Pig {
 
     public Drawable getCurrentDrawable() {
         Drawable drawable;
+        //根据当前状态获取相对应的drawable
         switch (mState) {
             case STATE_STANDING:
                 drawable = mOrientation == ORIENTATION_LEFT ? mStandingRightDrawable : mStandingLeftDrawable;
@@ -116,6 +110,9 @@ public class Pig {
         mItemSize = itemSize;
     }
 
+    /**
+     * 获取小猪当前所在位置(矩形二维数组里面的索引)
+     */
     private WayData getPosition(float currentProgress) {
         float totalWayLength = mPathData.size() * mItemSize;
         int currentIndex = (int) (totalWayLength * currentProgress / mItemSize);
@@ -129,6 +126,9 @@ public class Pig {
         return result;
     }
 
+    /**
+     位移动画
+     */
     public void startTranslateAnimation(int toX, int toY) {
         mValueAnimator = MyValueAnimator.create(getX(), toX, getY(), toY, this).setDuration(150);
         mValueAnimator.start();
@@ -141,21 +141,28 @@ public class Pig {
         }
     }
 
+    /**
+     路径动画
+     */
     public PathAnimation setPathAnimation(MyPath path, List<WayData> pathData) {
         mPathData = pathData;
         if (mPathAnimation == null) {
             mPathAnimation = new PathAnimation(path);
         } else {
+            //对象复用
             mPathAnimation.updatePath(path);
         }
         if (mPathAnimation.getUpdateListener() == null) {
+            //路径动画进度更新
             mPathAnimation.setUpdateListener((currentProgress, pointF) -> {
                 if (mOnPositionUpdateListener != null) {
+                    //获取小猪当前所在位置,并判断是否刷新了位置,如果刷新的位置才回调给PigstyMode中的监听器
                     WayData newPosition = getPosition(currentProgress);
                     if (newPosition != null && !(newPosition.x == mHorizontalPos && newPosition.y == mVerticalPos)) {
                         mOnPositionUpdateListener.onUpdate(this, new WayData(mHorizontalPos, mVerticalPos), newPosition);
                     }
                 }
+                //更新位置
                 setX(pointF.x, true);
                 setY(pointF.y);
             });
@@ -169,6 +176,7 @@ public class Pig {
 
                 @Override
                 public void onAnimationEnd() {
+                    //设置小猪已经跑掉了
                     setState(Pig.STATE_STANDING);
                     if (!mPathAnimation.isAnimationRepeat()) {
                         setEnable(false);
@@ -192,6 +200,7 @@ public class Pig {
                     } catch (InterruptedException e) {
                         return;
                     }
+                    //动画重复前,先倒转一下路径信息
                     Collections.reverse(mPathData);
                     mSemaphore.release();
                 }
@@ -251,10 +260,6 @@ public class Pig {
         mOnPositionUpdateListener = null;
     }
 
-    public interface OnTouchListener {
-        void onTouch(Pig pig, MotionEvent event, int index);
-    }
-
     public void setEnable(boolean enable) {
         isEnable = enable;
     }
@@ -275,6 +280,9 @@ public class Pig {
         return mState;
     }
 
+    /**
+     设置小猪当前状态(只播放当前显示中的状态帧动画,其他的暂停,节省资源)
+     */
     public void setState(@State int state) {
         mState = state;
         switch (state) {
@@ -346,6 +354,7 @@ public class Pig {
 
     private void setX(float x, boolean isProgressUpdate) {
         if (isProgressUpdate) {
+            //x坐标更新,判断是否面朝不同的方向
             if (x > mX && mOrientation != ORIENTATION_RIGHT) {
                 setOrientation(ORIENTATION_RIGHT);
             } else if (x < mX && mOrientation != ORIENTATION_LEFT) {
@@ -361,6 +370,10 @@ public class Pig {
         mStandingRightDrawable.setX(x);
     }
 
+    public float getY() {
+        return mY;
+    }
+
     public void setY(float y) {
         mY = y;
         mRunningLeftDrawable.setY(y);
@@ -369,10 +382,6 @@ public class Pig {
         mDraggingRightDrawable.setY(y);
         mStandingLeftDrawable.setY(y);
         mStandingRightDrawable.setY(y);
-    }
-
-    public float getY() {
-        return mY;
     }
 
     public WayData getPosition() {
@@ -385,6 +394,9 @@ public class Pig {
         mHorizontalPos = horizontalPos;
     }
 
+    /**
+     下面几个方法都是初始化小猪各个状态下的帧动画
+     */
     private Bitmap[] getDraggingRightBitmaps(Context context) {
         Bitmap bitmap1 = BitmapUtil.getBitmapFromResource(context, R.mipmap.ic_drop_right_1);
         int height = (int) (bitmap1.getHeight() * mScale);
@@ -432,6 +444,28 @@ public class Pig {
                 BitmapUtil.scaleBitmap(BitmapUtil.getBitmapFromResource(context, R.mipmap.ic_occupied_left_6), mWidth, mHeight),
                 BitmapUtil.scaleBitmap(BitmapUtil.getBitmapFromResource(context, R.mipmap.ic_occupied_left_7), mWidth, mHeight),
                 BitmapUtil.scaleBitmap(BitmapUtil.getBitmapFromResource(context, R.mipmap.ic_occupied_left_8), mWidth, mHeight)};
+    }
+
+    /**
+     * 小猪状态: (拖动中, 逃跑中, 站立中)
+     */
+    @IntDef({STATE_DRAGGING, STATE_RUNNING, STATE_STANDING})
+    @IntRange(from = STATE_STANDING, to = STATE_DRAGGING)
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface State {
+    }
+
+    /**
+     * 小猪的面朝方向: 左, 右
+     */
+    @IntDef({ORIENTATION_LEFT, ORIENTATION_RIGHT})
+    @IntRange(from = ORIENTATION_LEFT, to = ORIENTATION_RIGHT)
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface Orientation {
+    }
+
+    public interface OnTouchListener {
+        void onTouch(Pig pig, MotionEvent event, int index);
     }
 
     public interface OnPositionUpdateListener {

@@ -23,14 +23,18 @@ import java.util.Locale;
  * Created by wuyr on 17-12-25 上午1:44.
  */
 
+/**
+ * 完整的经典模式
+ */
 public class ClassicModeView extends FrameLayout {
 
-    private String mLevelStringFormat;
-    private ClassicMode mClassicMode;
-    private TextView mRefreshButton;
-    private TextView mLevelTextView;
-    private long mStartTime;
-    private int mCurrentLevel;
+    private String mLevelStringFormat;//关卡数的格式
+    private ClassicMode mClassicMode;//经典模式实例
+    private TextView mRefreshButton;//刷新按钮
+    private TextView mLevelTextView;//显示关卡数的TextView
+    private long mStartTime;//开始时间
+    private int mCurrentLevel;//当前关卡
+    private AlertDialog mGameResultDialog, mExitDialog, mHeartEmptyDialog;
 
     public ClassicModeView(@NonNull Context context) {
         this(context, null);
@@ -59,8 +63,10 @@ public class ClassicModeView extends FrameLayout {
                 showFailureDialog();
             }
         });
+        //小猪拖动完之后, 调整按钮状态
         mClassicMode.setOnPiggyDraggedListener((() -> findViewById(R.id.drag_btn)
                 .setBackgroundResource(checkDragCountIsEnough(false) ? R.mipmap.ic_drag : R.mipmap.ic_drag_disable)));
+        //各个按钮的点击事件
         OnClickListener onClickListener = v -> {
             switch (v.getId()) {
                 case R.id.guide_btn:
@@ -121,24 +127,28 @@ public class ClassicModeView extends FrameLayout {
         findViewById(R.id.drag_btn).setOnClickListener(onClickListener);
     }
 
+    //设置为不可用状态
     private void disableUndoButton(View v) {
         v.setBackgroundResource(R.mipmap.ic_undo_disable);
         v.setEnabled(false);
         ((TextView) v).setText("0");
     }
 
+    //设置为不可用状态
     private void disableNavigationButton(View v) {
         v.setBackgroundResource(R.mipmap.ic_navigation_disable);
         v.setEnabled(false);
         ((TextView) v).setText("0");
     }
 
+    //设置为不可用状态
     private void disableDragButton(View v) {
         v.setBackgroundResource(R.mipmap.ic_drag_disable);
         v.setEnabled(false);
         ((TextView) v).setText("0");
     }
 
+    //重新开始的时候,重置下各个按钮的状态
     private void resetStatus() {
         if (checkHeartIsEnough(true)) {
             TextView undoBtn = findViewById(R.id.undo_btn);
@@ -192,8 +202,6 @@ public class ClassicModeView extends FrameLayout {
         mExitDialog = null;
     }
 
-    private AlertDialog mGameResultDialog, mExitDialog, mHeartEmptyDialog;
-
     private void showVictoryDialog() {
         Application.saveCurrentClassicModeLevel(getContext(), mCurrentLevel + 1);
         initGameResultDialog(false);
@@ -226,6 +234,8 @@ public class ClassicModeView extends FrameLayout {
                     break;
                 case R.id.positive_button:
                     mGameResultDialog.dismiss();
+                    //如果是赢了,就显示 (重玩,下一关)两个按钮,如果是输了,就显示(菜单,重玩)两个按钮
+                    //重玩和下一关之前都要检查下心够不够
                     if (isRequestHelp) {
                         if (checkHeartIsEnough(false)) {
                             mRefreshButton.performClick();

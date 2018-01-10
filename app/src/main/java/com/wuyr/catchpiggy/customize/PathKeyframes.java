@@ -7,6 +7,9 @@ import android.graphics.PointF;
  * Created by wuyr on 17-11-22 上午12:45.
  */
 
+/**
+ * 关键帧,参考自SDK
+ */
 class PathKeyframes extends Keyframes {
     private static final int FRACTION_OFFSET = 0;
     private static final int X_OFFSET = 1;
@@ -17,6 +20,11 @@ class PathKeyframes extends Keyframes {
 
     PathKeyframes(MyPath path) {
         super(path);
+    }
+
+    private static float interpolate(float fraction, float startValue, float endValue) {
+        float diff = endValue - startValue;
+        return startValue + (diff * fraction);
     }
 
     @SuppressLint("NewApi")
@@ -87,10 +95,5 @@ class PathKeyframes extends Keyframes {
         int yOffset = base + Y_OFFSET;
         mTempPointF.set(mKeyframeData[xOffset], mKeyframeData[yOffset]);
         return mTempPointF;
-    }
-
-    private static float interpolate(float fraction, float startValue, float endValue) {
-        float diff = endValue - startValue;
-        return startValue + (diff * fraction);
     }
 }
