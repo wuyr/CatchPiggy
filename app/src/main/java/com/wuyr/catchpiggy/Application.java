@@ -64,7 +64,9 @@ public class Application extends com.mob.MobApplication {
      * 保存经典模式当前关卡
      */
     public static void saveCurrentClassicModeLevel(Context context, long currentLevel) {
-        getSharedPreferences(context).edit().putLong(CURRENT_CLASSIC_MODE_LEVEL, currentLevel).apply();
+        if (getCurrentClassicModeLevel(context) < currentLevel) {
+            getSharedPreferences(context).edit().putLong(CURRENT_CLASSIC_MODE_LEVEL, currentLevel).apply();
+        }
     }
 
     /**
@@ -78,7 +80,9 @@ public class Application extends com.mob.MobApplication {
      * 保存修猪圈模式当前关卡
      */
     public static void saveCurrentPigstyModeLevel(Context context, long currentLevel) {
-        getSharedPreferences(context).edit().putLong(CURRENT_PIGSTY_MODE_LEVEL, currentLevel).apply();
+        if (getCurrentPigstyModeLevel(context) < currentLevel) {
+            getSharedPreferences(context).edit().putLong(CURRENT_PIGSTY_MODE_LEVEL, currentLevel).apply();
+        }
     }
 
     /**
