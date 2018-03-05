@@ -1,7 +1,7 @@
 # 捉小猪
 ## 捉小猪一款很有趣的Android休闲小游戏， 用原生SurfaceView写的，没有用到游戏引擎
 ## 游戏主页：https://wuyr.github.io/
-## 详细见: blog.csdn.net/u011387817/article/details/79439383
+## 详细见: http://blog.csdn.net/u011387817/article/details/79439383
 
 
 ## 预览图:
