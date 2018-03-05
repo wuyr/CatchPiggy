@@ -13,3 +13,5 @@
 ### 我们的SurfaceView里面有一个Rect二维数组, 用来存放这些矩形, 小猪离开手指之后, 就开始从小猪当前所在的矩形,用广度优先遍历, 找到一条最短的路径(比如: [5,5 5,4 5,3 5,2 5,1 5,0]这样的), 然后再根据这条路径在Rect数组中找到对应的矩形, 最后根据这些对应的矩形的坐标来确定出Path. 哈哈, 有了Path小猪就可以跑了.
 ![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview3.gif)
 ![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview4.gif)
+
+### 待改进的地方: 亡猪补牢模式:弹框需改成SurfaceView直接draw.(现在是dialog)
