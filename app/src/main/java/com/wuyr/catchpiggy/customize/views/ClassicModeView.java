@@ -326,7 +326,7 @@ public class ClassicModeView extends FrameLayout {
             if (mExitDialog == null) {
                 initExitDialog(listener);
             }
-            if (!mExitDialog.isShowing()) {
+            if (mExitDialog != null && !mExitDialog.isShowing()) {
                 mExitDialog.show();
             }
         }

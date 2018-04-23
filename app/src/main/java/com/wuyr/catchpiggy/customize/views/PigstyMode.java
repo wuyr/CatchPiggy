@@ -39,6 +39,7 @@ import com.wuyr.catchpiggy.models.WayData;
 import com.wuyr.catchpiggy.utils.BitmapUtil;
 import com.wuyr.catchpiggy.utils.ComputeWayUtil;
 import com.wuyr.catchpiggy.utils.LevelUtil;
+import com.wuyr.catchpiggy.utils.LogUtil;
 import com.wuyr.catchpiggy.utils.ShareUtil;
 import com.wuyr.catchpiggy.utils.ThreadPool;
 
@@ -61,11 +62,11 @@ import java.util.concurrent.Future;
  * 利用矩形的坐标来确定小猪和树头的释放
  * 先初始化矩形二维数组:
  * * * * * * *
+  * * * * * * *
  * * * * * * *
+  * * * * * * *
  * * * * * * *
- * * * * * * *
- * * * * * * *
- * * * * * * *
+  * * * * * * *
  * 单双行错开排列,铺满屏幕.
  * 小猪和树头拖动完, 手指松开后, 根据小猪当前坐标来确定现处于哪个矩形里面,
  * 再根据矩形的坐标,来重新调整小猪和树头的位置,把它们定位到此矩形的中心
@@ -273,6 +274,12 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                 if (Thread.interrupted()) {
                     return;
                 }
+                // TODO: 4/23/18 remove following code
+//                for (int i = 0; i < mPiggies.length; i++) {
+//                    if (mPiggies[i] == pig) {
+//                        paths[i] = path;
+//                    }
+//                }
                 pig.startPathAnimation();
             } else {
                 if (Thread.interrupted()) {
@@ -303,6 +310,8 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                 } else if (pig.getState() == Pig.STATE_STANDING) {
                     if (ComputeWayUtil.isEdge(VERTICAL_COUNT, HORIZONTAL_COUNT, pig.getPosition())) {
                         runCount++;
+                        // TODO: 4/23/18 remove following code
+//                        paths[i] = null;
                     } else {
                         int[][] pattern = new int[VERTICAL_COUNT][HORIZONTAL_COUNT];
                         for (int vertical = 0; vertical < VERTICAL_COUNT; vertical++) {
@@ -594,7 +603,18 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         }
     }
 
+//    private MyPath[] paths= new MyPath[6];
+
     private void startDraw(Canvas canvas) {
+        // TODO: 4/23/18 remove following code
+//        mPaint.setStrokeWidth(4);
+//        mPaint.setColor(Color.YELLOW);
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        for (int vertical = 0; vertical < VERTICAL_COUNT; vertical++) {
+//            for (int horizontal = 0; horizontal < HORIZONTAL_COUNT; horizontal++) {
+//                canvas.drawRect(mItems[vertical][horizontal], mPaint);
+//            }
+//        }
         mPropOffsetHelper.drawLeavedProps(canvas);
         //图层顺序不同
         if (!isCarArrived) {
@@ -667,6 +687,15 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
             mPropOffsetHelper.drawInQueueProps(canvas);
         }
         drawText(canvas);
+
+        // TODO: 4/23/18 remove following code
+//        mPaint.setColor(Color.RED);
+//        mPaint.setStrokeWidth(8);
+//        for (MyPath path : paths) {
+//            if (path != null) {
+//                canvas.drawPath(path, mPaint);
+//            }
+//        }
     }
 
     /**
@@ -830,6 +859,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                 //有树头离队,要通知树头生成线程继续生成
                 mPropOffsetHelper.propLeaved(index);
                 synchronized (PROP_GENERATE_TASK_LOCK) {
+                    LogUtil.print("线程恢复");
                     PROP_GENERATE_TASK_LOCK.notifyAll();
                 }
             }
@@ -871,6 +901,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                     //当前未离队的树头数量达到指定值,则暂停生成
                     while (mPropOffsetHelper.getQueueSize() >= MAX_PROP_SIZE) {
                         try {
+                            LogUtil.print("线程暂停");
                             PROP_GENERATE_TASK_LOCK.wait();
                         } catch (InterruptedException e) {
                             return;

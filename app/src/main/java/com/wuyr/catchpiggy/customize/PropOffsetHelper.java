@@ -5,10 +5,13 @@ import android.graphics.Canvas;
 import android.os.SystemClock;
 
 import com.wuyr.catchpiggy.models.PropData;
+import com.wuyr.catchpiggy.utils.LogUtil;
 import com.wuyr.catchpiggy.utils.ThreadPool;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 /**
@@ -24,6 +27,7 @@ public class PropOffsetHelper {
     private MyDrawable mPropDrawable;//树头的图片
     private List<PropData> mProps;//全部树头的数据
     private List<Integer> mLeavedProps;//已放置的树头(索引)
+    private Set<Integer> mFinishedProps;
     private float mStartX, mStartY;//树头一开始的位置
     private int mPropSize;//树头尺寸
     private Future mUpdateTask;//更新位置的线程
@@ -39,6 +43,7 @@ public class PropOffsetHelper {
         mStartY = height - mPropDrawable.getIntrinsicHeight();
         mPropSize = propSize;
         mLeavedProps = new ArrayList<>();
+        mFinishedProps = new HashSet<>();
         long propOffsetAnimationDuration = 4000L;
         mPropOffsetSpeed = mStartX / propOffsetAnimationDuration;
     }
@@ -55,20 +60,21 @@ public class PropOffsetHelper {
     }
 
     /**
-     获取已放置的树头数量
+     * 获取已放置的树头数量
      */
     public int getLeavedPropCount() {
         return mLeavedProps.size();
     }
 
     /**
-     添加一个树头
+     * 添加一个树头
      */
     public void addProp() {
         PropData data = new PropData(mPropDrawable.clone());
         data.setY(mStartY);
         data.setX(mStartX);
         mProps.add(data);
+        LogUtil.print("添加了一个prop");
         //LogUtil.print(mProps.size());
     }
 
@@ -81,14 +87,15 @@ public class PropOffsetHelper {
     }
 
     /**
-     有树头脱队
+     * 有树头脱队
      */
     public void propLeaved(int index) {
         mLeavedProps.add(index);
+        LogUtil.print("出队pos:" + index);
     }
 
     /**
-     画队列中的(未放置的)树头
+     * 画队列中的(未放置的)树头
      */
     public void drawInQueueProps(Canvas canvas) {
         for (int i = 0; i < mProps.size(); i++) {
@@ -99,7 +106,7 @@ public class PropOffsetHelper {
     }
 
     /**
-     画已放置的树头
+     * 画已放置的树头
      */
     public void drawLeavedProps(Canvas canvas) {
         for (int i = 0; i < mLeavedProps.size(); i++) {
@@ -122,7 +129,7 @@ public class PropOffsetHelper {
     }
 
     /**
-     停止生成
+     * 停止生成
      */
     public void stop() {
         isNeed = false;
@@ -135,7 +142,7 @@ public class PropOffsetHelper {
 
     //获取队列中的(未放置的)树头数量
     public int getQueueSize() {
-        return mProps.size() - mLeavedProps.size();
+        return mFinishedProps.size() - mLeavedProps.size();
     }
 
     public void restart() {
@@ -170,15 +177,15 @@ public class PropOffsetHelper {
                     if (!isFinished) {
                         //计算间隔时间
                         intervalTime = updateTime - prop.lastUpdateTime;
-                        //大于10毫秒才作处理
-                        if (intervalTime > 10) {
-                            //路程 = 时间 * 速度
-                            offset = intervalTime * mPropOffsetSpeed;
-                            //更新数据
-                            prop.setX(prop.getX() - offset);
-                            prop.lastUpdateTime = updateTime;
-                        }
+//                        if (intervalTime > 10) {
+                        //路程 = 时间 * 速度
+                        offset = intervalTime * mPropOffsetSpeed;
+                        //更新数据
+                        prop.setX(prop.getX() - offset);
+                        prop.lastUpdateTime = updateTime;
+//                        }
                     } else {
+                        mFinishedProps.add(i);
                         prop.lastUpdateTime = updateTime;
                     }
                 }
@@ -187,7 +194,7 @@ public class PropOffsetHelper {
     }
 
     /**
-     更新线程停止后又重新开始,需要加上停止的这段时间
+     * 更新线程停止后又重新开始,需要加上停止的这段时间
      */
     private void updatePropGenerateTime() {
         if (mLastStopTime > 0) {

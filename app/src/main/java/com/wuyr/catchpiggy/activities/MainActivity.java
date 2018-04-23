@@ -1,8 +1,6 @@
 package com.wuyr.catchpiggy.activities;
 
 import android.media.MediaPlayer;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -15,6 +13,7 @@ import com.wuyr.catchpiggy.customize.views.LevelSelectView;
 import com.wuyr.catchpiggy.customize.views.LoadingView;
 import com.wuyr.catchpiggy.customize.views.PigstyMode;
 import com.wuyr.catchpiggy.utils.LevelUtil;
+import com.wuyr.catchpiggy.utils.LogUtil;
 import com.wuyr.catchpiggy.utils.ThreadPool;
 
 /**
@@ -38,13 +37,14 @@ public class MainActivity extends BaseActivity {
     private MediaPlayer mPlayer;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.act_main_view);
-        initView();
+    protected int getLayoutId() {
+        return R.layout.act_main_view;
     }
 
-    private void initView() {
+    protected void initView() {
+        LogUtil.setDebugOn(true);
+        LogUtil.setIsShowClassName(false);
+
         mRootView = findViewById(R.id.root_view);
         mLoadingView = findViewById(R.id.loading_view);
         mHomeView = findViewById(R.id.home_view);
@@ -87,6 +87,11 @@ public class MainActivity extends BaseActivity {
             mPlayer = null;
             return false;
         });
+    }
+
+    @Override
+    protected boolean isStatusBarNeedImmerse() {
+        return false;
     }
 
     @Override
@@ -143,7 +148,7 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     开始修猪圈模式
+     * 开始修猪圈模式
      */
     private void startFixPigstyMode(int level) {
         if (!mLoadingView.isLoading) {
@@ -163,7 +168,7 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     开始经典模式
+     * 开始经典模式
      */
     private void startClassicMode(int level) {
         if (!mLoadingView.isLoading) {
@@ -183,13 +188,13 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     重新开始修猪圈模式
+     * 重新开始修猪圈模式
      */
     public void reloadFixPigstyMode(final int level) {
         mLoadingView.startLoad(() -> {
             //释放上一个修猪圈模式的view
-            mPigstyMode.exitNow();
             if (mPigstyMode != null) {
+                mPigstyMode.exitNow();
                 mRootView.removeView(mPigstyMode);
             }
             mPigstyMode = new PigstyMode(MainActivity.this);
@@ -200,7 +205,7 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     返回主页
+     * 返回主页
      */
     public void backToHome() {
         switch (mCurrentStatus) {
