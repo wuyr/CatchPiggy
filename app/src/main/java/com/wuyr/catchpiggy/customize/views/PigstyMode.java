@@ -495,6 +495,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
         for (int vertical = 0; vertical < VERTICAL_COUNT; vertical++) {
             currentY = mItemSize * vertical;
             for (int horizontal = 0; horizontal < HORIZONTAL_COUNT; horizontal++) {
+                //如果行数是双数，则向右偏移半个格子
                 currentX = mItemSize * horizontal + (vertical % 2 == 0 ? mItemSize / 2 : 0);
                 Rect rect = new Rect(childrenX + currentX, childrenY + currentY,
                         childrenX + currentX + mItemSize, childrenY + currentY + mItemSize);
@@ -507,7 +508,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
     private void startGenerate() {
         isNeed = true;
         startGenerateProp();
-        mPropOffsetHelper.restart();
+        mPropOffsetHelper.startComputeOffset();
     }
 
     private void stopGenerate() {
@@ -908,6 +909,7 @@ public class PigstyMode extends SurfaceView implements SurfaceHolder.Callback, R
                         }
                     }
                 }
+                LogUtil.print("线程休眠");
                 try {
                     Thread.sleep(mMissionData.propDelay);
                 } catch (InterruptedException e) {

@@ -17,10 +17,15 @@ import java.util.Queue;
  * 亡猪补牢模式计算小猪逃跑路线的工具类
  */
 public class ComputeWayUtil {
+
     private static final int STATE_WALKED = 3;//状态标记(已走过)
 
     /**
      * 以currentPos为中心点,向周围6个方向查找空闲的位置(广度优先遍历)
+     * @param items 格子状态
+     * @param ignorePos 需要忽略的格子
+     * @param currentPos 起始的格子（以这个格子为起点向四周查找）
+     * @return 空闲的格子
      */
     public static WayData findNextUnSelected(int[][] items, List<WayData> ignorePos, WayData currentPos) {
         int verticalCount = items.length;
@@ -28,7 +33,7 @@ public class ComputeWayUtil {
         Queue<WayData> way = new ArrayDeque<>();
         int[][] pattern = new int[verticalCount][horizontalCount];
         for (int vertical = 0; vertical < verticalCount; vertical++) {
-            //复制数组(因为要对数组元素值进行修改)
+            //复制数组(因为要对数组元素值进行修改，且不能影响原来的)
             System.arraycopy(items[vertical], 0, pattern[vertical], 0, horizontalCount);
         }
         way.offer(currentPos);//当前pos先入队
@@ -40,7 +45,8 @@ public class ComputeWayUtil {
             for (int i = 0; i < directions.size(); i++) {
                 WayData direction = directions.get(i);
                 //判断该位置是否空闲,如果是空闲则直接返回,如果不是空闲,则入队,下次以它为中心,寻找周边的元素
-                if (!currentPos.equals(direction) && items[direction.y][direction.x] == Item.STATE_UNSELECTED && !(ignorePos != null && ignorePos.contains(direction))) {
+                if (!currentPos.equals(direction) && items[direction.y][direction.x] == Item.STATE_UNSELECTED
+                        && !(ignorePos != null && ignorePos.contains(direction))) {
                     return direction;
                 } else {
                     way.offer(direction);
@@ -108,8 +114,7 @@ public class ComputeWayUtil {
                 WayData direction = directions.get(i);
                 for (List<WayData> tmp : footprints) {
                     if (canLinks(header, tmp)) {
-                        List<WayData> list2 = new ArrayList<>();
-                        list2.addAll(tmp);
+                        List<WayData> list2 = new ArrayList<>(tmp);
                         list2.add(direction);
                         list.add(list2);
                     }
@@ -136,14 +141,19 @@ public class ComputeWayUtil {
     }
 
     /**
-     判断当前位置是否能放置树头(如果在一个封闭的圈子里面,则连小猪当前位置也要计算)例如:(0表示树头 .表示小猪)
+     * 判断当前位置是否能放置树桩或小猪(如果在一个封闭的圈子里面,则连小猪当前位置也要计算)例如:(0表示树头 .表示小猪)
      * * * * * * *
      *  * 0 0 0 * *
-     * * 0 . . 0 * 
+     * * 0 . . 0 *
      *  * 0 * 0 * *
      * * * 0 0 * *
      *  * * * * * *
-     计算出来空闲的结果是1,也即是可以放置,如果再多一个小猪在里面,则不可放置
+     * 计算出来空闲的结果是1,也即是可以放置,如果再多一个小猪在里面,则不可放置
+     * @param items 格子状态
+     * @param occupiedPos 小猪们的所在位置
+     * @param currentPos 起点
+     * @param result 空闲的格子
+     * @return 圈子内能否放置
      */
     public static boolean isCurrentPositionCanSet(int[][] items, WayData[] occupiedPos, WayData currentPos, List<WayData> result) {
         int verticalCount = items.length;
@@ -151,34 +161,46 @@ public class ComputeWayUtil {
         Queue<WayData> way = new ArrayDeque<>();
         int[][] pattern = new int[verticalCount][horizontalCount];
         for (int vertical = 0; vertical < verticalCount; vertical++) {
+            //复制数组(因为要对数组元素值进行修改，且不能影响原来的)
             System.arraycopy(items[vertical], 0, pattern[vertical], 0, horizontalCount);
         }
         for (WayData tmp : occupiedPos) {
             if (tmp != null) {
+                //先将小猪们占用的位置标记未未选中
                 pattern[tmp.y][tmp.x] = Item.STATE_UNSELECTED;
             }
         }
-
+        //以currentPos为起点
         way.offer(currentPos);
+        //标记状态(已走过)
         pattern[currentPos.y][currentPos.x] = STATE_WALKED;
         if (items[currentPos.y][currentPos.x] != Item.STATE_SELECTED) {
+            //如果起点也是空闲状态，则算他一个
             result.add(currentPos);
         }
+        //开始广度优先遍历
         while (!way.isEmpty()) {
+            //队头出队
             WayData header = way.poll();
+            //寻找周围6个方向可以到达的位置(不包括越界的,标记过的,不是空闲的)也就是空闲的格子
             List<WayData> directions = getCanArrivePos(pattern, header);
             for (int i = 0; i < directions.size(); i++) {
                 WayData direction = directions.get(i);
+                //将这些位置添加进去
                 result.add(direction);
                 way.offer(direction);
             }
         }
         int count = 0;
+        //重点来了
+        //现在result里面保存的位置，都是忽略了小猪的坐标的，所以现在要重新计算一下
+        //遍历小猪们当前所在位置，是否在result中，如果在，记录一下
         for (WayData tmp : occupiedPos) {
             if (tmp != null && result.contains(tmp)) {
                 count++;
             }
         }
+        //最后，如果空闲格子内的小猪数 < 总的空闲格子数，则认为这个圈内还能放得下，反之
         return count < result.size();
     }
 
@@ -212,8 +234,7 @@ public class ComputeWayUtil {
                 WayData direction = directions.get(i);
                 for (List<WayData> tmp : footprints) {
                     if (canLinks(header, tmp)) {
-                        List<WayData> list2 = new ArrayList<>();
-                        list2.addAll(tmp);
+                        List<WayData> list2 = new ArrayList<>(tmp);
                         list2.add(direction);
                         list.add(list2);
                     }
@@ -265,8 +286,7 @@ public class ComputeWayUtil {
                 WayData direction = directions.get(i);
                 for (List<WayData> tmp : footprints) {
                     if (canLinks(header, tmp)) {
-                        List<WayData> list2 = new ArrayList<>();
-                        list2.addAll(tmp);
+                        List<WayData> list2 = new ArrayList<>(tmp);
                         list2.add(direction);
                         list.add(list2);
                     }

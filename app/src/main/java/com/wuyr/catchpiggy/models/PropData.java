@@ -5,6 +5,8 @@ import android.os.SystemClock;
 
 import com.wuyr.catchpiggy.customize.MyDrawable;
 
+import java.util.Locale;
+
 /**
  * Created by wuyr on 17-12-4 上午2:14.
  */
@@ -46,6 +48,6 @@ public class PropData {
 
     @Override
     public String toString() {
-        return drawable.getX() + ", " + drawable.getY();
+        return String.format(Locale.getDefault(), "%f, %f", drawable.getX(), drawable.getY());
     }
 }

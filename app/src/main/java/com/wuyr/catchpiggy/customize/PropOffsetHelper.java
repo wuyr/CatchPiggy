@@ -9,9 +9,7 @@ import com.wuyr.catchpiggy.utils.LogUtil;
 import com.wuyr.catchpiggy.utils.ThreadPool;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Future;
 
 /**
@@ -27,7 +25,6 @@ public class PropOffsetHelper {
     private MyDrawable mPropDrawable;//树头的图片
     private List<PropData> mProps;//全部树头的数据
     private List<Integer> mLeavedProps;//已放置的树头(索引)
-    private Set<Integer> mFinishedProps;
     private float mStartX, mStartY;//树头一开始的位置
     private int mPropSize;//树头尺寸
     private Future mUpdateTask;//更新位置的线程
@@ -43,7 +40,6 @@ public class PropOffsetHelper {
         mStartY = height - mPropDrawable.getIntrinsicHeight();
         mPropSize = propSize;
         mLeavedProps = new ArrayList<>();
-        mFinishedProps = new HashSet<>();
         long propOffsetAnimationDuration = 4000L;
         mPropOffsetSpeed = mStartX / propOffsetAnimationDuration;
     }
@@ -142,10 +138,13 @@ public class PropOffsetHelper {
 
     //获取队列中的(未放置的)树头数量
     public int getQueueSize() {
-        return mFinishedProps.size() - mLeavedProps.size();
+        return mProps.size() - mLeavedProps.size();
     }
 
-    public void restart() {
+    /**
+     * 开始更新树桩的位置
+     */
+    public void startComputeOffset() {
         updatePropGenerateTime();
         isNeed = true;
         //更新树头位置线程
@@ -163,7 +162,9 @@ public class PropOffsetHelper {
                     if (mLeavedProps.contains(i)) {
                         continue;
                     }
+                    //计算出总距离
                     distance = i * mPropSize + mLeftOffset;
+                    //离队树桩数量
                     hitOffsetCount = 0;
                     for (int j = 0; j < mLeavedProps.size(); j++) {
                         //检查是否有离队的树头
@@ -171,23 +172,21 @@ public class PropOffsetHelper {
                             hitOffsetCount++;
                         }
                     }
+                    //减去已离队的树桩占用的位置，得出真实的位置
                     distance -= mPropSize * hitOffsetCount;
+                    //树桩的x轴小于或等于实际的偏移距离，则认为已经偏移完成，不需要继续更新位置
                     isFinished = prop.getX() <= distance;
                     updateTime = SystemClock.uptimeMillis();
                     if (!isFinished) {
                         //计算间隔时间
                         intervalTime = updateTime - prop.lastUpdateTime;
-//                        if (intervalTime > 10) {
                         //路程 = 时间 * 速度
                         offset = intervalTime * mPropOffsetSpeed;
-                        //更新数据
+                        //更新x轴位置
                         prop.setX(prop.getX() - offset);
-                        prop.lastUpdateTime = updateTime;
-//                        }
-                    } else {
-                        mFinishedProps.add(i);
-                        prop.lastUpdateTime = updateTime;
                     }
+                    //刷新上一次的更新时间
+                    prop.lastUpdateTime = updateTime;
                 }
             }
         });
@@ -198,9 +197,11 @@ public class PropOffsetHelper {
      */
     private void updatePropGenerateTime() {
         if (mLastStopTime > 0) {
+            //总停止时间 = 当前时间 - 上次更新时间
             long totalStoppedTime = SystemClock.uptimeMillis() - mLastStopTime;
             mLastStopTime = 0;
             for (int i = 0; i < mProps.size(); i++) {
+                //加上这段时间
                 mProps.get(i).lastUpdateTime += totalStoppedTime;
             }
         }

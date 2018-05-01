@@ -5,7 +5,7 @@
 
 
 ## 预览图:
-![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview1.gif) ![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview2.gif)
+![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview1.gif) ![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview2.gif) ![preview](https://github.com/wuyr/CatchPiggy/raw/master/preview5.gif)
 
 
 ## 思路:
